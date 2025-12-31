@@ -311,7 +311,10 @@ async function doSave(){
   if(!state.session) return showAuth("Para gardar, entra primeiro.");
   const g = state.current;
   setText("#saveHint","Gardando…");
+  const btn = $("#btnSave"); if(btn) btn.disabled = true;
 
+  // ✅ IMPORTANTE: só enviamos columnas "seguras" para evitar erros se a túa táboa
+  // non ten algunhas columnas (gallery_urls/setup_quick/how_to_play_url, etc.)
   const payload = {
     title: $("#f_title").value.trim(),
     subtitle: $("#f_subtitle").value.trim(),
@@ -321,25 +324,46 @@ async function doSave(){
     minutes: toInt($("#f_minutes").value) ?? 0,
     tags: parseTags($("#f_tags").value),
     cover_url: $("#f_cover").value.trim() || null,
-    gallery_urls: parseLines($("#f_gallery").value),
-    how_to_play_url: $("#f_video").value.trim() || null,
-    setup_quick: parseLines($("#f_setup").value),
     notes: $("#f_notes").value.trim() || null,
   };
 
-  let data, error;
-  if(g && g.__new){
-    ({ data, error } = await state.client.from("games").insert(payload).select("*").single());
-  }else{
-    ({ data, error } = await state.client.from("games").update(payload).eq("id", g.id).select("*").single());
-  }
-  if(error){ setText("#saveHint","Erro: "+error.message); return; }
+  const op = (async ()=>{
+    let data, error;
+    if(g && g.__new){
+      ({ data, error } = await state.client.from("games").insert(payload).select("*").single());
+    }else{
+      ({ data, error } = await state.client.from("games").update(payload).eq("id", g.id).select("*").single());
+    }
+    if(error) throw error;
+    return data;
+  })();
 
-  setText("#saveHint","Gardado ✅");
-  await loadGames();
-  renderChips();
-  await render();
-  openDetail(norm(data));
+  // timeout para non quedar "colgado"
+  const TIMEOUT_MS = 12000;
+  try{
+    const data = await Promise.race([
+      op,
+      new Promise((_, rej)=>setTimeout(()=>rej(new Error("TIMEOUT")), TIMEOUT_MS))
+    ]);
+
+    setText("#saveHint","Gardado ✅");
+    await loadGames();
+    renderChips();
+    await render();
+    openDetail(norm(data));
+    const btn = $("#btnSave"); if(btn) btn.disabled = false;
+  }catch(e){
+    console.error(e);
+    const btn = $("#btnSave"); if(btn) btn.disabled = false;
+    const msg2 = (e && e.message) ? e.message : String(e);
+    if(msg2 === "TIMEOUT"){ alert("⚠️ Quedou en Gardando…: seguramente políticas RLS/permiso en Supabase ou conexión."); }
+    else { alert("Erro ao gardar: " + msg2); }
+    const msg = (e && e.message) ? e.message : String(e);
+    setText("#saveHint", msg === "TIMEOUT"
+      ? "⚠️ Tardou demasiado. Revisa conexión e políticas RLS en Supabase."
+      : ("Erro: " + msg)
+    );
+  }
 }
 
 function createNew(){

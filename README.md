@@ -55,3 +55,10 @@ Imaxes:
 - `cover_url` = portada
 - `gallery_urls` = imaxes extra na ficha
 Se `cover_url` está baleiro e hai `bgg_id`, a portada cárgase de BGG.
+
+
+## Opción B: Portadas e imaxes por URL (sen BGG automático)
+- En cada xogo, en **Editar**:
+  - **Portada URL**: pega unha URL directa a unha imaxe
+  - **Galería URLs**: unha URL por liña
+- A app non fai chamadas a BGG para imaxes/etiquetas.
