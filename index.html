@@ -11,141 +11,36 @@
   <div class="app" id="app">
     <header class="topbar">
       <div class="brand">
-        <div class="brand__icon" aria-hidden="true">🎲</div>
+        <div class="brand__icon">🎲</div>
         <div class="brand__text">
           <div class="brand__title">Ludoteca</div>
-          <div class="brand__subtitle" id="subtitle">Móbil first · estética “mockup”</div>
+          <div class="brand__subtitle">A miña colección</div>
         </div>
       </div>
-      <div class="topbar__right">
-        <button class="iconbtn" id="btnTheme" aria-label="Cambiar tema" title="Tema">
-          <span class="iconbtn__icon" id="themeIcon" aria-hidden="true">🌙</span>
-        </button>
-        <button class="iconbtn" id="btnAbout" aria-label="Info" title="Info">
-          <span class="iconbtn__icon" aria-hidden="true">ℹ️</span>
-        </button>
-      </div>
+      <button class="iconbtn" id="btnTheme" aria-label="Cambiar tema">🌙</button>
     </header>
 
     <section class="search">
       <div class="search__box">
-        <span class="search__icon" aria-hidden="true">🔎</span>
-        <input id="q" type="search" autocomplete="off" placeholder="Buscar por título, etiqueta…"
-               aria-label="Buscar xogos" />
-        <button class="search__clear" id="btnClear" aria-label="Limpar busca" title="Limpar">✕</button>
+        <span>🔎</span>
+        <input id="q" type="search" placeholder="Buscar por título, etiqueta…" />
       </div>
-      <div class="search__meta" id="resultsMeta">Cargando…</div>
+      <div class="search__meta" id="meta"></div>
     </section>
 
-    <section class="filters">
-      <div class="chips" id="chips"></div>
-      <div class="filters__row">
-        <div class="select">
-          <label class="select__label" for="players">Xogadores</label>
-          <select id="players" class="select__control">
-            <option value="any">Calquera</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5+">5+</option>
-          </select>
-        </div>
-
-        <div class="select">
-          <label class="select__label" for="time">Duración</label>
-          <select id="time" class="select__control">
-            <option value="any">Calquera</option>
-            <option value="short">≤ 30 min</option>
-            <option value="medium">31–90 min</option>
-            <option value="long">> 90 min</option>
-          </select>
-        </div>
-
-        <div class="select">
-          <label class="select__label" for="sort">Ordenar</label>
-          <select id="sort" class="select__control">
-            <option value="name">Nome A→Z</option>
-            <option value="rating">Nota ★</option>
-            <option value="plays">Partidas</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <main class="gallery" aria-label="Galería de xogos">
+    <main class="gallery">
       <div class="grid" id="grid"></div>
-
-      <div class="empty" id="empty" hidden>
-        <div class="empty__emoji" aria-hidden="true">🧩</div>
-        <div class="empty__title">Non hai resultados</div>
-        <div class="empty__text">Proba a quitar filtros ou buscar por outra palabra.</div>
-        <button class="btn" id="btnReset" type="button">Restablecer</button>
-      </div>
     </main>
-
-    <nav class="bottomnav" aria-label="Navegación">
-      <button class="bottomnav__item bottomnav__item--active" type="button" aria-current="page">
-        <span class="bottomnav__icon" aria-hidden="true">🗂️</span>
-        <span class="bottomnav__label">Colección</span>
-      </button>
-      <button class="bottomnav__item" type="button" disabled>
-        <span class="bottomnav__icon" aria-hidden="true">⭐</span>
-        <span class="bottomnav__label">Wishlist</span>
-      </button>
-      <button class="bottomnav__item" type="button" disabled>
-        <span class="bottomnav__icon" aria-hidden="true">📒</span>
-        <span class="bottomnav__label">Partidas</span>
-      </button>
-      <button class="bottomnav__item" type="button" disabled>
-        <span class="bottomnav__icon" aria-hidden="true">🎲</span>
-        <span class="bottomnav__label">Ferramentas</span>
-      </button>
-    </nav>
   </div>
 
-  <!-- Detail overlay -->
+  <!-- Detail view -->
   <div class="detail" id="detail" hidden>
     <div class="detail__top">
-      <button class="detail__back" id="detailBack" type="button">← Ludoteca</button>
-      <div class="detail__title" id="detailTitle">Ficha</div>
-      <button class="detail__kebab" type="button" id="detailMenu" disabled>⋯</button>
+      <button class="detail__back" id="detailBack">← Volver</button>
+      <div class="detail__title" id="detailTitle"></div>
     </div>
-
-    <div class="detail__hero">
-      <img id="detailCover" alt="Portada" />
-      <div class="detail__heroFade" aria-hidden="true"></div>
-    </div>
-
-    <div class="detail__content">
-      <div class="tabs" role="tablist" aria-label="Pestañas">
-        <button class="tab tab--on" type="button" data-tab="resumo" role="tab" aria-selected="true">Resumo</button>
-        <button class="tab" type="button" data-tab="setup" role="tab" aria-selected="false">Setup</button>
-        <button class="tab" type="button" data-tab="imaxes" role="tab" aria-selected="false">Imaxes</button>
-        <button class="tab" type="button" data-tab="links" role="tab" aria-selected="false">Ligazóns</button>
-      </div>
-
-      <section class="panel" id="tab-resumo"></section>
-      <section class="panel" id="tab-setup" hidden></section>
-      <section class="panel" id="tab-imaxes" hidden></section>
-      <section class="panel" id="tab-links" hidden></section>
-    </div>
-  </div>
-
-  <!-- About modal -->
-  <div class="modal" id="about" hidden>
-    <div class="modal__card">
-      <div class="modal__title">Como funciona</div>
-      <div class="modal__text">
-        A portada cárgase por defecto desde BGG (caché en localStorage).<br/>
-        Se queres forzar unha portada ou engadir imaxes extra: edita <code>data/games.json</code>:
-        <pre><code>"images":{
-  "cover":"https://…/cover.jpg",
-  "gallery":[ "https://…/img1.jpg", "https://…/img2.jpg" ]
-}</code></pre>
-      </div>
-      <button class="btn" id="aboutClose" type="button">Pechar</button>
-    </div>
+    <img id="detailCover" class="detail__cover"/>
+    <div class="detail__content" id="detailContent"></div>
   </div>
 
   <script src="app.js"></script>
