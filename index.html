@@ -8,61 +8,60 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app" id="app">
+  <div class="app">
     <header class="topbar">
       <div class="brand">
         <div class="brand__icon" aria-hidden="true">🎲</div>
         <div class="brand__text">
           <div class="brand__title">Ludoteca</div>
-          <div class="brand__subtitle">A miña colección</div>
+          <div class="brand__subtitle">Colección</div>
         </div>
       </div>
+
       <div class="topbar__right">
         <button class="iconbtn" id="btnTheme" title="Tema"><span id="themeIcon">🌙</span></button>
-        <button class="iconbtn" id="btnPin" title="Modo edición">📌</button>
-        <button class="iconbtn" id="btnAccount" title="Conta">👤</button>
+        <button class="iconbtn" id="btnEditMode" title="Modo edición (PIN)" disabled>📌</button>
+        <button class="iconbtn" id="btnNew" title="Crear" disabled>＋</button>
+        <button class="iconbtn" id="btnAuth" title="Entrar / Saír"><span id="authIcon">👤</span></button>
       </div>
     </header>
 
     <section class="search">
       <div class="search__box">
-        <span class="search__icon">🔎</span>
+        <span aria-hidden="true">🔎</span>
         <input id="q" type="search" placeholder="Buscar por título, etiqueta…" />
         <button class="search__clear" id="btnClear" title="Limpar">✕</button>
       </div>
-      <div class="search__meta" id="resultsMeta">Cargando…</div>
+      <div class="search__meta" id="meta">Cargando…</div>
     </section>
 
     <section class="filters">
       <div class="chips" id="chips"></div>
       <div class="filters__row">
         <div class="select">
-          <label class="select__label" for="players">Xogadores</label>
+          <label class="select__label">Xogadores</label>
           <select id="players" class="select__control">
             <option value="any">Calquera</option><option value="1">1</option><option value="2">2</option>
             <option value="3">3</option><option value="4">4</option><option value="5+">5+</option>
           </select>
         </div>
         <div class="select">
-          <label class="select__label" for="time">Duración</label>
+          <label class="select__label">Duración</label>
           <select id="time" class="select__control">
-            <option value="any">Calquera</option><option value="short">≤ 30 min</option>
-            <option value="medium">31–90 min</option><option value="long">> 90 min</option>
+            <option value="any">Calquera</option>
+            <option value="short">≤ 30</option>
+            <option value="medium">31–90</option>
+            <option value="long">> 90</option>
           </select>
         </div>
         <div class="select">
-          <label class="select__label" for="sort">Ordenar</label>
+          <label class="select__label">Ordenar</label>
           <select id="sort" class="select__control">
-            <option value="name">Nome A→Z</option><option value="rating">Nota ★</option><option value="plays">Partidas</option>
+            <option value="name">Nome</option>
+            <option value="rating">Nota ★</option>
+            <option value="plays">Partidas</option>
           </select>
         </div>
-      </div>
-
-      <div class="editbar" id="editbar" hidden>
-        <button class="btn" id="btnNew" type="button">+ Novo xogo</button>
-        <button class="btn" id="btnImport" type="button">Importar JSON</button>
-        <input id="fileImport" type="file" accept="application/json" hidden />
-        <div class="editbar__hint" id="editHint">Modo edición</div>
       </div>
     </section>
 
@@ -71,24 +70,33 @@
       <div class="empty" id="empty" hidden>
         <div class="empty__emoji">🧩</div>
         <div class="empty__title">Non hai resultados</div>
-        <div class="empty__text">Proba a quitar filtros ou buscar por outra palabra.</div>
+        <div class="empty__text">Proba a quitar filtros.</div>
         <button class="btn" id="btnReset" type="button">Restablecer</button>
       </div>
     </main>
 
-    <nav class="bottomnav">
-      <button class="bottomnav__item bottomnav__item--active" type="button"><span>🗂️</span><span>Colección</span></button>
-      <button class="bottomnav__item" type="button" disabled><span>⭐</span><span>Wishlist</span></button>
-      <button class="bottomnav__item" type="button" disabled><span>📒</span><span>Partidas</span></button>
-      <button class="bottomnav__item" type="button" disabled><span>🎲</span><span>Ferramentas</span></button>
+    <nav class="bottomnav" aria-label="Navegación">
+      <button class="bottomnav__item bottomnav__item--active" type="button">
+        <span class="bottomnav__icon">🗂️</span><span class="bottomnav__label">Colección</span>
+      </button>
+      <button class="bottomnav__item" type="button" disabled>
+        <span class="bottomnav__icon">⭐</span><span class="bottomnav__label">Wishlist</span>
+      </button>
+      <button class="bottomnav__item" type="button" disabled>
+        <span class="bottomnav__icon">📒</span><span class="bottomnav__label">Partidas</span>
+      </button>
+      <button class="bottomnav__item" type="button" disabled>
+        <span class="bottomnav__icon">🎲</span><span class="bottomnav__label">Ferramentas</span>
+      </button>
     </nav>
   </div>
 
+  <!-- Detail -->
   <div class="detail" id="detail" hidden>
     <div class="detail__top">
-      <button class="detail__back" id="detailBack" type="button">← Ludoteca</button>
+      <button class="detail__back" id="detailBack">← Ludoteca</button>
       <div class="detail__title" id="detailTitle">Ficha</div>
-      <button class="detail__kebab" type="button" disabled>⋯</button>
+      <button class="detail__kebab" id="detailEditBtn" title="Editar" hidden>✎</button>
     </div>
     <div class="detail__hero">
       <img id="detailCover" alt="Portada" />
@@ -96,60 +104,69 @@
     </div>
     <div class="detail__content">
       <div class="tabs">
-        <button class="tab tab--on" type="button" data-tab="resumo">Resumo</button>
-        <button class="tab" type="button" data-tab="setup">Setup</button>
-        <button class="tab" type="button" data-tab="imaxes">Imaxes</button>
-        <button class="tab" type="button" data-tab="links">Ligazóns</button>
+        <button class="tab tab--on" data-tab="resumo">Resumo</button>
+        <button class="tab" data-tab="setup">Setup</button>
+        <button class="tab" data-tab="imaxes">Imaxes</button>
+        <button class="tab" data-tab="links">Ligazóns</button>
       </div>
       <section class="panel" id="tab-resumo"></section>
       <section class="panel" id="tab-setup" hidden></section>
       <section class="panel" id="tab-imaxes" hidden></section>
       <section class="panel" id="tab-links" hidden></section>
 
-      <div class="panel panel--edit" id="detailEdit" hidden>
-        <div class="panel__title">Editar xogo</div>
-        <form id="editForm" class="form">
-          <div class="form__row"><label>Título</label><input name="title" required /></div>
-          <div class="form__row"><label>Subtítulo</label><input name="subtitle" /></div>
-          <div class="form__grid3">
-            <div class="form__row"><label>Min xogadores</label><input name="players_min" type="number" min="1" /></div>
-            <div class="form__row"><label>Máx xogadores</label><input name="players_max" type="number" min="1" /></div>
-            <div class="form__row"><label>Minutos</label><input name="minutes" type="number" min="0" /></div>
+      <section class="panel" id="editor" hidden>
+        <div class="form">
+          <div class="form__row">
+            <div class="field"><label>Título</label><input id="f_title"></div>
+            <div class="field"><label>Subtítulo</label><input id="f_subtitle"></div>
           </div>
-          <div class="form__grid2">
-            <div class="form__row"><label>BGG id</label><input name="bgg_id" type="number" min="0" /></div>
-            <div class="form__row"><label>Vídeo como xogar</label><input name="how_to_play_url" placeholder="https://…" /></div>
+          <div class="form__row">
+            <div class="field"><label>BGG id</label><input id="f_bgg" type="number"></div>
+            <div class="field"><label>Players min</label><input id="f_pmin" type="number"></div>
+            <div class="field"><label>Players max</label><input id="f_pmax" type="number"></div>
+            <div class="field"><label>Minutos</label><input id="f_minutes" type="number"></div>
           </div>
-          <div class="form__row"><label>Tags (comas)</label><input name="tags" /></div>
-          <div class="form__row"><label>Portada URL (opcional; se baleiro usa BGG)</label><input name="cover_url" /></div>
-          <div class="form__row"><label>Galería URLs (1 por liña; só ficha)</label><textarea name="gallery_urls"></textarea></div>
-          <div class="form__row"><label>Setup rápido (1 por liña)</label><textarea name="setup_quick"></textarea></div>
-          <div class="form__row"><label>Notas</label><textarea name="notes"></textarea></div>
+          <div class="form__row">
+            <div class="field"><label>Tags (comas)</label><input id="f_tags"></div>
+          </div>
+          <div class="form__row">
+            <div class="field"><label>Portada URL (opcional)</label><input id="f_cover"></div>
+          </div>
+          <div class="form__row">
+            <div class="field"><label>Galería URLs (1 por liña)</label><textarea id="f_gallery"></textarea></div>
+          </div>
+          <div class="form__row">
+            <div class="field"><label>Vídeo</label><input id="f_video"></div>
+          </div>
+          <div class="form__row">
+            <div class="field"><label>Setup (1 por liña)</label><textarea id="f_setup"></textarea></div>
+          </div>
+          <div class="form__row">
+            <div class="field"><label>Notas</label><textarea id="f_notes"></textarea></div>
+          </div>
           <div class="form__actions">
-            <button class="btn" type="submit">Gardar</button>
-            <button class="btn btn--ghost" id="btnDelete" type="button">Eliminar</button>
+            <button class="btn" id="btnSave" type="button">Gardar</button>
+            <button class="btn btn--ghost" id="btnCancel" type="button">Cancelar</button>
           </div>
-          <div class="form__msg" id="editMsg"></div>
-        </form>
-      </div>
+          <div class="hint" id="saveHint"></div>
+        </div>
+      </section>
     </div>
   </div>
 
-  <div class="modal" id="auth" hidden>
+  <!-- Auth modal -->
+  <div class="modal" id="authModal" hidden>
     <div class="modal__card">
       <div class="modal__title">Entrar</div>
-      <div class="modal__text">Preme 📌 para editar. Se non estás logueado, pedirache login. Só admin pode editar.</div>
-      <form id="loginForm" class="form">
-        <div class="form__row"><label>Email</label><input name="email" type="email" required /></div>
-        <div class="form__row"><label>Contrasinal</label><input name="password" type="password" required /></div>
+      <div class="modal__text">Email + contrasinal (Supabase Auth)</div>
+      <div class="form">
+        <div class="field"><label>Email</label><input id="authEmail" type="email"></div>
+        <div class="field"><label>Contrasinal</label><input id="authPass" type="password"></div>
         <div class="form__actions">
-          <button class="btn" type="submit">Sign in</button>
-          <button class="btn btn--ghost" id="loginCancel" type="button">Cancelar</button>
+          <button class="btn" id="btnSignIn" type="button">Sign in</button>
+          <button class="btn btn--ghost" id="btnCloseAuth" type="button">Pechar</button>
         </div>
-        <div class="form__msg" id="loginMsg"></div>
-      </form>
-      <div class="modal__foot">
-        <button class="btn btn--ghost" id="logoutBtn" type="button" hidden>Pechar sesión</button>
+        <div class="hint" id="authHint"></div>
       </div>
     </div>
   </div>
