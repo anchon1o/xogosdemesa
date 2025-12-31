@@ -1,51 +1,66 @@
 let games=[];
-let theme='dark';
+let activeTag=null;
 
 fetch('data/games.json')
-  .then(r=>r.json())
-  .then(d=>{games=d;render();});
+ .then(r=>r.json())
+ .then(d=>{games=d;renderChips();render();});
 
-document.getElementById('btnTheme').onclick=()=>{
-  theme = theme==='dark'?'light':'dark';
-  document.body.style.background = theme==='dark'?'#0b1020':'#f7f9fc';
-  document.body.style.color = theme==='dark'?'#eef2ff':'#0b1020';
-};
+const search=document.getElementById('search');
+search.oninput=render;
 
-document.getElementById('q').oninput=render;
+function renderChips(){
+  const set=new Set();
+  games.forEach(g=>(g.tags||[]).forEach(t=>set.add(t)));
+  const chips=document.getElementById('chips');
+  chips.innerHTML='<div class="chip on">Todo</div>';
+  chips.firstChild.onclick=()=>{activeTag=null;render();setActive(null)};
+  [...set].sort().forEach(t=>{
+    const c=document.createElement('div');
+    c.className='chip';
+    c.textContent=t;
+    c.onclick=()=>{activeTag=t;render();setActive(c)};
+    chips.appendChild(c);
+  });
+}
+
+function setActive(el){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  if(el) el.classList.add('on');
+}
 
 function render(){
-  const q=document.getElementById('q').value.toLowerCase();
+  const q=search.value.toLowerCase();
   const grid=document.getElementById('grid');
-  const meta=document.getElementById('meta');
   grid.innerHTML='';
-
-  const filtered=games.filter(g=>g.title.toLowerCase().includes(q));
-  meta.textContent = filtered.length+' xogos';
-
-  filtered.forEach(g=>{
+  games.filter(g=>{
+    const matchQ=g.title.toLowerCase().includes(q);
+    const matchT=!activeTag||(g.tags||[]).includes(activeTag);
+    return matchQ&&matchT;
+  }).forEach(g=>{
     const c=document.createElement('div');
     c.className='card';
     const img=document.createElement('img');
     loadCover(g).then(u=>img.src=u);
     c.appendChild(img);
-    c.innerHTML+=`<div class="card__body">
-      <div class="card__title">${g.title}</div>
-      <div class="card__meta">${g.players?.[0]}–${g.players?.[1]} xog. · ${g.minutes||'—'} min</div>
-      <button>Abrir ficha</button>
+    c.innerHTML+=`<div class="card-body">
+      <div class="card-title">${g.title}</div>
+      <div class="card-meta">${g.players?.[0]}–${g.players?.[1]} xog · ${g.minutes||'—'} min</div>
     </div>`;
-    c.querySelector('button').onclick=()=>openDetail(g);
+    c.onclick=()=>openDetail(g);
     grid.appendChild(c);
   });
 }
 
 function openDetail(g){
   document.getElementById('detail').hidden=false;
-  document.getElementById('detailTitle').textContent=g.title;
   loadCover(g).then(u=>document.getElementById('detailCover').src=u);
-  document.getElementById('detailContent').innerHTML=`<p>${g.notes||''}</p>`;
+  document.getElementById('detailBody').innerHTML=`
+    <h2>${g.title}</h2>
+    <p>${g.notes||''}</p>
+  `;
 }
 
-document.getElementById('detailBack').onclick=()=>{
+document.getElementById('close').onclick=()=>{
   document.getElementById('detail').hidden=true;
 };
 
@@ -53,8 +68,8 @@ async function loadCover(g){
   if(g.images?.cover) return g.images.cover;
   if(!g.bggId) return '';
   const key='bgg_'+g.bggId;
-  const cached=localStorage.getItem(key);
-  if(cached) return cached;
+  const c=localStorage.getItem(key);
+  if(c) return c;
   const r=await fetch('https://boardgamegeek.com/xmlapi2/thing?id='+g.bggId);
   const t=await r.text();
   const img=new DOMParser().parseFromString(t,'text/xml').querySelector('image');

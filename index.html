@@ -8,40 +8,29 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app" id="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand__icon">🎲</div>
-        <div class="brand__text">
-          <div class="brand__title">Ludoteca</div>
-          <div class="brand__subtitle">A miña colección</div>
-        </div>
+  <header class="top">
+    <div class="brand">
+      <span class="dice">🎲</span>
+      <div>
+        <div class="title">Ludoteca</div>
+        <div class="subtitle">A miña colección</div>
       </div>
-      <button class="iconbtn" id="btnTheme" aria-label="Cambiar tema">🌙</button>
-    </header>
-
-    <section class="search">
-      <div class="search__box">
-        <span>🔎</span>
-        <input id="q" type="search" placeholder="Buscar por título, etiqueta…" />
-      </div>
-      <div class="search__meta" id="meta"></div>
-    </section>
-
-    <main class="gallery">
-      <div class="grid" id="grid"></div>
-    </main>
-  </div>
-
-  <!-- Detail view -->
-  <div class="detail" id="detail" hidden>
-    <div class="detail__top">
-      <button class="detail__back" id="detailBack">← Volver</button>
-      <div class="detail__title" id="detailTitle"></div>
     </div>
-    <img id="detailCover" class="detail__cover"/>
-    <div class="detail__content" id="detailContent"></div>
-  </div>
+    <button id="theme" class="icon">🌙</button>
+  </header>
+
+  <section class="controls">
+    <input id="search" type="search" placeholder="Buscar xogo…" />
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <main class="grid" id="grid"></main>
+
+  <section class="detail" id="detail" hidden>
+    <button class="back" id="close">← Volver</button>
+    <img id="detailCover" class="detail-cover"/>
+    <div id="detailBody"></div>
+  </section>
 
   <script src="app.js"></script>
 </body>
