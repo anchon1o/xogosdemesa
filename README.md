@@ -1,17 +1,8 @@
-# Ludoteca — estética bonita + portada BGG + imaxes extra na ficha
-
-## Datos
-Edita `data/games.json`.
-
-Para imaxes externas (non ocupan repo):
-```json
-"images":{
-  "cover":"https://…/cover.jpg",
-  "gallery":[ "https://…/img1.jpg", "https://…/img2.jpg" ]
-}
+# Ludoteca + Supabase (CRUD real, sen localStorage)
+1) Pega en `config.js` o **Project URL** e a **anon public key** (Supabase → Project Settings → API).
+2) En Supabase → SQL Editor, executa `supabase/schema.sql`.
+3) Marca o teu usuario como admin:
+```sql
+update public.profiles set is_admin = true where email = 'TEU_EMAIL';
 ```
-
-Se `images.cover` está baleiro e tes `bggId`, a portada cárgase desde BGG (caché en localStorage).
-
-## Vercel/GitHub
-Sube todo á raíz do repo mantendo a carpeta `data/`.
+4) Na web: 👤 login → 📌 modo edición → “Importar JSON” e escolle `seed/games.json`.
