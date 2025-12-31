@@ -375,6 +375,10 @@ function bind(){
   on("#btnTheme","click",toggleTheme);
 
   on("#btnAuth","click", async ()=>{
+    if(!state.client){
+      showMeta("⚠️ Supabase non está configurado (revisa config.js)");
+      return;
+    }
     if(!state.session) showAuth("");
     else await state.client.auth.signOut();
   });
@@ -433,8 +437,13 @@ function bind(){
 
 async function boot(){
   applyTheme();
-  if(!initSupabase()) return;
+  // ✅ Bind sempre (para que os botóns funcionen incluso se falta config)
   bind();
+
+  if(!initSupabase()){
+    // sen Supabase non hai datos nin login, pero a UI non debe “morrer”
+    return;
+  }
 
   await refreshSession();
   state.client.auth.onAuthStateChange(async ()=>{
