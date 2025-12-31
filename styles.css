@@ -1,3 +1,8 @@
+
+/* ✅ FIX: ensure [hidden] actually hides overlays (Safari/iOS) */
+[hidden]{ display:none !important; }
+.modal[hidden], .detail[hidden]{ display:none !important; }
+
 /* Estética tipo “mockup” */
 :root{
   --bg:#0b1020;
