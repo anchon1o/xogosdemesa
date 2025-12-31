@@ -161,18 +161,8 @@ function placeholder(txt){
   return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%23141a33'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23eef2ff' font-family='system-ui' font-size='36'%3E"+encodeURIComponent(txt)+"%3C/text%3E%3C/svg%3E";
 }
 async function loadCover(g){
+  // ✅ Opción B: só URLs (sen chamadas a BGG)
   if(g.cover) return g.cover;
-  if(!g.bggId) return placeholder("sen portada");
-  const key = "bgg_cover_" + g.bggId;
-  const c = localStorage.getItem(key);
-  if(c) return c;
-  try{
-    const res = await fetch("https://boardgamegeek.com/xmlapi2/thing?id=" + g.bggId);
-    const text = await res.text();
-    const img = new DOMParser().parseFromString(text, "text/xml").querySelector("image");
-    const url = img?.textContent?.trim();
-    if(url){ localStorage.setItem(key, url); return url; }
-  }catch(e){}
   return placeholder("sen portada");
 }
 function pill(icon, text){ return `<span class="pill">${icon} ${text}</span>`; }
