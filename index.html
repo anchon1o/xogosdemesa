@@ -75,7 +75,7 @@
       </div>
     </main>
 
-    <!-- ✅ Bottom nav con ids para alternar Colección/Wishlist -->
+    <!-- ✅ Bottom nav: Colección / Wishlist con IDs para cambiar vista -->
     <nav class="bottomnav" aria-label="Navegación">
       <button class="bottomnav__item bottomnav__item--active" id="navCollection" type="button">
         <span class="bottomnav__icon">🗂️</span><span class="bottomnav__label">Colección</span>
@@ -115,7 +115,7 @@
       <section class="panel" id="tab-imaxes" hidden></section>
       <section class="panel" id="tab-links" hidden></section>
 
-      <!-- ✅ Editor: casillas visibles + campo collection -->
+      <!-- ✅ Editor con casillas visibles -->
       <section class="panel" id="editor" hidden>
         <div class="form">
           <div class="form__row">
@@ -124,23 +124,19 @@
           </div>
 
           <div class="form__row">
-            <div class="field">
-              <label>Colección</label>
-              <select id="f_collection">
-                <option value="own">own (Colección)</option>
-                <option value="wishlist">wishlist</option>
-              </select>
-            </div>
             <div class="field"><label>BGG id</label><input id="f_bgg" type="number"></div>
-          </div>
-
-          <div class="form__row">
             <div class="field"><label>Players min</label><input id="f_pmin" type="number"></div>
             <div class="field"><label>Players max</label><input id="f_pmax" type="number"></div>
             <div class="field"><label>Minutos</label><input id="f_minutes" type="number"></div>
           </div>
 
           <div class="form__row">
+            <div class="field"><label>Onde vai?</label>
+              <select id="f_collection">
+                <option value="own">Colección</option>
+                <option value="wishlist">Wishlist</option>
+              </select>
+            </div>
             <div class="field"><label>Tags (comas)</label><input id="f_tags"></div>
           </div>
 
