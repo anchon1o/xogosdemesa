@@ -75,12 +75,12 @@
       </div>
     </main>
 
-    <!-- ✅ Bottom nav: Colección/Wishlist activos -->
+    <!-- ✅ Bottom nav con ids para alternar Colección/Wishlist -->
     <nav class="bottomnav" aria-label="Navegación">
-      <button class="bottomnav__item bottomnav__item--active" id="navOwn" type="button">
+      <button class="bottomnav__item bottomnav__item--active" id="navCollection" type="button">
         <span class="bottomnav__icon">🗂️</span><span class="bottomnav__label">Colección</span>
       </button>
-      <button class="bottomnav__item" id="navWish" type="button">
+      <button class="bottomnav__item" id="navWishlist" type="button">
         <span class="bottomnav__icon">⭐</span><span class="bottomnav__label">Wishlist</span>
       </button>
       <button class="bottomnav__item" type="button" disabled>
@@ -115,7 +115,7 @@
       <section class="panel" id="tab-imaxes" hidden></section>
       <section class="panel" id="tab-links" hidden></section>
 
-      <!-- ✅ Editor -->
+      <!-- ✅ Editor: casillas visibles + campo collection -->
       <section class="panel" id="editor" hidden>
         <div class="form">
           <div class="form__row">
@@ -124,16 +124,14 @@
           </div>
 
           <div class="form__row">
-            <div class="field"><label>BGG id</label><input id="f_bgg" type="number"></div>
-
-            <!-- ✅ NOVO: Colección -->
             <div class="field">
               <label>Colección</label>
               <select id="f_collection">
-                <option value="own">own</option>
+                <option value="own">own (Colección)</option>
                 <option value="wishlist">wishlist</option>
               </select>
             </div>
+            <div class="field"><label>BGG id</label><input id="f_bgg" type="number"></div>
           </div>
 
           <div class="form__row">
@@ -150,13 +148,14 @@
             <div class="field"><label>Portada URL (opcional)</label><input id="f_cover"></div>
           </div>
 
-          <!-- ✅ Casillas visibles (sen display:none) -->
           <div class="form__row">
             <div class="field"><label>Galería URLs (1 por liña)</label><textarea id="f_gallery" placeholder="https://..."></textarea></div>
           </div>
+
           <div class="form__row">
             <div class="field"><label>Vídeo</label><input id="f_video" placeholder="https://youtu.be/..."></div>
           </div>
+
           <div class="form__row">
             <div class="field"><label>Setup (1 por liña)</label><textarea id="f_setup" placeholder="1) ..."></textarea></div>
           </div>
