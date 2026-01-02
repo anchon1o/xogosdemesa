@@ -1,42 +1,45 @@
-// Ludoteca (Supabase) — edición estable + sen .single() + URLs + campos extra
-// NOTA: para que "galería_urls", "how_to_play_url" e "setup_quick" funcionen,
-// a táboa "games" debe ter esas columnas (text[] / text / text[]).
+// Ludoteca (Supabase)
+// - Móbil-first
+// - Tema claro/escuro
+// - Filtros (texto, tags, xogadores, tempo, orde)
+// - Ficha con pestanas + editor (só admin)
+// - Garda en Supabase (non LocalStorage)
 
+// Helpers DOM
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-/** Estado global da app */
+// Estado global da app
 const state = {
   games: [],
   theme: localStorage.getItem("ludo_theme") || "dark",
-
-  // filtros
   tag: null,
   q: "",
   players: "any",
   time: "any",
   sort: "name",
-
-  // edición
   editMode: false,
   session: null,
   client: null,
-  current: null,
+  current: null, // xogo actualmente aberto (detalle/editor)
 };
 
-/** Axuda: set de texto seguro */
+// ---------- Utilidades UI ----------
 function setText(sel, text) {
   const el = $(sel);
   if (el) el.textContent = text;
 }
 
-/** Axuda: bind de eventos seguro */
 function on(sel, evt, fn) {
   const el = $(sel);
   if (el) el.addEventListener(evt, fn);
 }
 
-/** Tema */
+function showMeta(text) {
+  setText("#meta", text);
+}
+
+// ---------- Tema ----------
 function applyTheme() {
   document.documentElement.setAttribute(
     "data-theme",
@@ -44,20 +47,24 @@ function applyTheme() {
   );
   setText("#themeIcon", state.theme === "light" ? "☀️" : "🌙");
 }
+
 function toggleTheme() {
   state.theme = state.theme === "light" ? "dark" : "light";
   localStorage.setItem("ludo_theme", state.theme);
   applyTheme();
 }
 
-/** Modal login */
+// ---------- Modal Login ----------
 function showAuth(hint) {
   const m = $("#authModal");
   if (!m) return;
   m.hidden = false;
   setText("#authHint", hint || "");
-  setTimeout(() => $("#authEmail")?.focus(), 0);
+  setTimeout(() => {
+    $("#authEmail")?.focus();
+  }, 0);
 }
+
 function hideAuth() {
   const m = $("#authModal");
   if (!m) return;
@@ -65,12 +72,7 @@ function hideAuth() {
   setText("#authHint", "");
 }
 
-/** Mensaxe superior */
-function showMeta(text) {
-  setText("#meta", text);
-}
-
-/** Inicializa Supabase */
+// ---------- Supabase init / sesión ----------
 function initSupabase() {
   if (
     !window.SUPABASE_URL ||
@@ -87,26 +89,29 @@ function initSupabase() {
   return true;
 }
 
-/** Refresca sesión e axusta UI (botóns editar/novo) */
+// Refresca sesión e actualiza UI de permisos (editar/novo)
 async function refreshSession() {
   const { data } = await state.client.auth.getSession();
   state.session = data?.session ?? null;
 
+  // Icona "usuario" no header
   setText("#authIcon", state.session ? "✅" : "👤");
 
+  // Só se pode editar se hai sesión (e logo RLS decide se é admin)
   const editBtn = $("#btnEditMode");
   const newBtn = $("#btnNew");
   if (editBtn) editBtn.disabled = !state.session;
   if (newBtn) newBtn.disabled = !state.session;
 
+  // Botón editar na ficha
   const detailEdit = $("#detailEditBtn");
   if (detailEdit) detailEdit.hidden = !state.session;
 
-  // se te logueas, pecha modal
+  // Se acabas de loguear, pecha o modal
   if (state.session) hideAuth();
 }
 
-/** Normaliza unha fila de Supabase a un obxecto usable pola UI */
+// ---------- Mapeo DB -> App ----------
 function norm(r) {
   return {
     id: r.id,
@@ -126,7 +131,7 @@ function norm(r) {
   };
 }
 
-/** Carga xogos desde Supabase */
+// ---------- Carga xogos ----------
 async function loadGames() {
   showMeta("Cargando…");
   const { data, error } = await state.client
@@ -142,14 +147,13 @@ async function loadGames() {
   state.games = (data || []).map(norm);
 }
 
-/** Tags únicas */
+// ---------- Tags / chips ----------
 function uniqueTags() {
   const set = new Set();
   state.games.forEach((g) => (g.tags || []).forEach((t) => set.add(t)));
   return [...set].sort((a, b) => String(a).localeCompare(String(b), "gl"));
 }
 
-/** Render chips (filtros por tag) */
 function renderChips() {
   const chips = $("#chips");
   if (!chips) return;
@@ -173,14 +177,13 @@ function renderChips() {
   uniqueTags().forEach((t) => mk(t, t));
 }
 
-/** Bucket de tempo */
+// ---------- Filtros ----------
 function bucket(mins) {
   if (mins <= 30) return "short";
   if (mins <= 90) return "medium";
   return "long";
 }
 
-/** Match xogadores */
 function matchPlayers(g, p) {
   if (p === "any") return true;
   if (p === "5+") return (g.players?.[1] ?? 0) >= 5;
@@ -188,7 +191,6 @@ function matchPlayers(g, p) {
   return n >= (g.players?.[0] ?? 1) && n <= (g.players?.[1] ?? 4);
 }
 
-/** Lista filtrada */
 function filtered() {
   const q = state.q.trim().toLowerCase();
   return state.games.filter((g) => {
@@ -197,7 +199,6 @@ function filtered() {
       g.title.toLowerCase().includes(q) ||
       (g.subtitle || "").toLowerCase().includes(q) ||
       (g.tags || []).join(" ").toLowerCase().includes(q);
-
     const okT = !state.tag || (g.tags || []).includes(state.tag);
     const okP = matchPlayers(g, state.players);
     const okM = state.time === "any" || bucket(g.minutes) === state.time;
@@ -205,7 +206,6 @@ function filtered() {
   });
 }
 
-/** Ordenación */
 function sorted(list) {
   const a = [...list];
   if (state.sort === "name") a.sort((x, y) => x.title.localeCompare(y.title, "gl"));
@@ -214,7 +214,7 @@ function sorted(list) {
   return a;
 }
 
-/** Placeholder base64 SVG */
+// ---------- Imaxes ----------
 function placeholder(txt) {
   return (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%23141a33'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23eef2ff' font-family='system-ui' font-size='36'%3E" +
@@ -223,27 +223,17 @@ function placeholder(txt) {
   );
 }
 
-/** Limpa URLs típicas que dan problemas (p.ex. rematar en $0) */
-function sanitizeUrl(u) {
-  const s = String(u || "").trim();
-  if (!s) return "";
-  // caso típico das imaxes que pegaches: rematan en $0
-  return s.replace(/\$0$/, "");
-}
-
-/** Carga portada (opción B: só URL) */
+// Opción B: só URLs (non buscar en BGG)
 async function loadCover(g) {
-  const u = sanitizeUrl(g.cover);
-  if (u) return u;
+  if (g.cover) return g.cover;
   return placeholder("sen portada");
 }
 
-/** UI pill */
 function pill(icon, text) {
   return `<span class="pill">${icon} ${text}</span>`;
 }
 
-/** Render principal */
+// ---------- Render grid ----------
 async function render() {
   const list = sorted(filtered());
   setText("#meta", `${list.length} resultado(s)`);
@@ -276,38 +266,39 @@ async function render() {
           : "");
 
       return `
-        <article class="card ${state.editMode ? "card--edit" : ""}">
-          <div class="cover">
-            <img class="cover__img" data-cover="${g.id}" alt="Portada de ${g.title}">
-            <div class="cover__badge">★ ${rating} · ▶ ${plays}</div>
+      <article class="card ${state.editMode ? "card--edit" : ""}">
+        <div class="cover">
+          <img class="cover__img" data-cover="${g.id}" alt="Portada de ${g.title}">
+          <div class="cover__badge">★ ${rating} · ▶ ${plays}</div>
+        </div>
+        <div class="card__body">
+          <div>
+            <div class="card__title">${g.title}</div>
+            <div class="card__sub">${g.subtitle || ""}</div>
           </div>
-          <div class="card__body">
-            <div>
-              <div class="card__title">${g.title}</div>
-              <div class="card__sub">${g.subtitle || ""}</div>
-            </div>
-            <div class="meta">${pill("👥", players)} ${pill("⏱️", minutes)}</div>
-            <div class="meta">${tagPills}</div>
-          </div>
-          <div class="card__footer">
-            <button class="smallbtn" type="button" data-open="${g.id}">
-              ${state.editMode && state.session ? "Editar" : "Abrir ficha"}
-            </button>
-            <button class="kebab" type="button" disabled>⋯</button>
-          </div>
-        </article>
-      `;
+          <div class="meta">${pill("👥", players)} ${pill("⏱️", minutes)}</div>
+          <div class="meta">${tagPills}</div>
+        </div>
+        <div class="card__footer">
+          <button class="smallbtn" type="button" data-open="${g.id}">
+            ${state.editMode && state.session ? "Editar" : "Abrir ficha"}
+          </button>
+          <button class="kebab" type="button" disabled>⋯</button>
+        </div>
+      </article>
+    `;
     })
     .join("");
 
-  // ✅ Non facemos await en bucle (era lentísimo). Cargamos en paralelo.
+  // Cargar portadas (se hai URL)
   for (const g of list) {
-    const img = grid.querySelector(`img[data-cover="${CSS.escape(g.id)}"]`);
+    const img = document.querySelector(`img[data-cover="${CSS.escape(g.id)}"]`);
     if (!img) continue;
     img.src = placeholder("cargando…");
-    loadCover(g).then((u) => (img.src = u)).catch(() => (img.src = placeholder("sen portada")));
+    img.src = await loadCover(g);
   }
 
+  // Botón Abrir/Editar
   grid.querySelectorAll("[data-open]").forEach((b) => {
     b.addEventListener("click", () => {
       const id = b.getAttribute("data-open");
@@ -319,7 +310,7 @@ async function render() {
   });
 }
 
-/** Tabs da ficha */
+// ---------- Ficha + pestanas ----------
 function setTab(tab) {
   $$(".tab").forEach((t) =>
     t.classList.toggle("tab--on", t.getAttribute("data-tab") === tab)
@@ -332,13 +323,11 @@ function setTab(tab) {
   if (ed) ed.hidden = true;
 }
 
-/** Abre ficha detalle */
 function openDetail(g) {
   state.current = g;
   const d = $("#detail");
   if (!d) return;
   d.hidden = false;
-
   setText("#detailTitle", g.title);
 
   const cover = $("#detailCover");
@@ -356,8 +345,15 @@ function openDetail(g) {
   if (resumo) {
     resumo.innerHTML = `
       <div style="font-weight:900;font-size:16px">${g.title}</div>
-      ${g.subtitle ? `<div style="margin-top:6px;color:var(--muted)">${g.subtitle}</div>` : ""}
-      <div class="kv">${pill("👥", players)} ${pill("⏱️", minutes)} ${pill("★", rating)} ${pill("▶", plays)}</div>
+      ${
+        g.subtitle
+          ? `<div style="margin-top:6px;color:var(--muted)">${g.subtitle}</div>`
+          : ""
+      }
+      <div class="kv">${pill("👥", players)} ${pill("⏱️", minutes)} ${pill(
+      "★",
+      rating
+    )} ${pill("▶", plays)}</div>
       ${
         (g.tags || []).length
           ? `<div class="kv">${(g.tags || [])
@@ -365,7 +361,11 @@ function openDetail(g) {
               .join("")}</div>`
           : ""
       }
-      ${g.notes ? `<div style="margin-top:12px;color:var(--muted)">${g.notes}</div>` : ""}
+      ${
+        g.notes
+          ? `<div style="margin-top:12px;color:var(--muted)">${g.notes}</div>`
+          : ""
+      }
     `;
   }
 
@@ -379,7 +379,7 @@ function openDetail(g) {
   if (imgs)
     imgs.innerHTML = g.gallery?.length
       ? `<div class="galleryRow">${g.gallery
-          .map((u) => `<img src="${sanitizeUrl(u)}" loading="lazy">`)
+          .map((u) => `<img src="${u}">`)
           .join("")}</div>
          <div style="margin-top:10px;color:var(--muted)">Imaxes externas (URLs).</div>`
       : `<div style="color:var(--muted)">Sen imaxes extra.</div>`;
@@ -389,14 +389,12 @@ function openDetail(g) {
     links.innerHTML = `
       ${
         g.video
-          ? `<a class="linkBtn" href="${sanitizeUrl(g.video)}" target="_blank" rel="noopener">▶ Vídeo: como xogar</a>`
+          ? `<a class="linkBtn" href="${g.video}" target="_blank" rel="noopener">▶ Vídeo: como xogar</a>`
           : `<div style="color:var(--muted)">Sen vídeo aínda.</div>`
       }
       ${
         g.bggId
-          ? `<div style="margin-top:12px">
-               <a href="https://boardgamegeek.com/boardgame/${g.bggId}" target="_blank" rel="noopener">Abrir en BGG</a>
-             </div>`
+          ? `<div style="margin-top:12px"><a href="https://boardgamegeek.com/boardgame/${g.bggId}" target="_blank" rel="noopener">Abrir en BGG</a></div>`
           : ""
       }
     `;
@@ -405,31 +403,29 @@ function openDetail(g) {
   document.body.style.overflow = "hidden";
 }
 
-/** Pecha ficha */
 function closeDetail() {
   const d = $("#detail");
   if (d) d.hidden = true;
   document.body.style.overflow = "";
 }
 
-/** Abre editor (dentro da ficha) */
+// ---------- Editor ----------
 function openEditor(g) {
   if (!state.session) return showAuth("Para editar, entra primeiro.");
-
   openDetail(g);
 
   const ed = $("#editor");
   if (!ed) return;
   ed.hidden = false;
 
-  // ocultamos contido das tabs mentres editas
+  // Oculta pestanas mentres editas
   ["resumo", "setup", "imaxes", "links"].forEach((k) => {
     const p = $("#tab-" + k);
     if (p) p.hidden = true;
   });
   $$(".tab").forEach((t) => t.classList.remove("tab--on"));
 
-  // Enchido de campos
+  // Enche formulario
   $("#f_title").value = g.title || "";
   $("#f_subtitle").value = g.subtitle || "";
   $("#f_bgg").value = g.bggId ?? "";
@@ -445,7 +441,6 @@ function openEditor(g) {
   setText("#saveHint", "");
 }
 
-/** Parsers */
 function parseTags(s) {
   return String(s || "")
     .split(",")
@@ -463,13 +458,7 @@ function toInt(v) {
   return Number.isFinite(n) ? n : null;
 }
 
-/**
- * Gardar cambios.
- * FIX clave:
- * - Non usamos .select("*").single()
- * - Facemos update/insert e despois recargamos con loadGames()
- * Así evitamos o erro "Cannot coerce..." cando RLS impide devolver a fila.
- */
+// Garda (update/insert) con manexo robusto (sen single())
 async function doSave() {
   if (!state.session) return showAuth("Para gardar, entra primeiro.");
 
@@ -478,7 +467,6 @@ async function doSave() {
   const btn = $("#btnSave");
   if (btn) btn.disabled = true;
 
-  // construímos payload coas columnas previstas
   const payload = {
     title: $("#f_title").value.trim(),
     subtitle: $("#f_subtitle").value.trim(),
@@ -487,56 +475,50 @@ async function doSave() {
     players_max: toInt($("#f_pmax").value) ?? 4,
     minutes: toInt($("#f_minutes").value) ?? 0,
     tags: parseTags($("#f_tags").value),
-    cover_url: sanitizeUrl($("#f_cover").value) || null,
-    gallery_urls: parseLines($("#f_gallery").value).map(sanitizeUrl), // text[]
-    how_to_play_url: sanitizeUrl($("#f_video").value) || null,        // text
-    setup_quick: parseLines($("#f_setup").value),                     // text[]
+    cover_url: $("#f_cover").value.trim() || null,
+    gallery_urls: parseLines($("#f_gallery").value),
+    how_to_play_url: $("#f_video").value.trim() || null,
+    setup_quick: parseLines($("#f_setup").value),
     notes: $("#f_notes").value.trim() || null,
   };
 
   try {
-    let error;
+    let resp;
 
     if (g && g.__new) {
-      ({ error } = await state.client.from("games").insert(payload));
+      resp = await state.client.from("games").insert(payload).select("*").maybeSingle();
     } else {
-      ({ error } = await state.client.from("games").update(payload).eq("id", g.id));
+      // O eq(id) debe afectar só 1 fila (uuid PK)
+      resp = await state.client.from("games").update(payload).eq("id", g.id).select("*").maybeSingle();
     }
 
+    const { data, error } = resp;
     if (error) throw error;
+
+    // Se RLS bloquea o RETURNING, data pode ser null -> avisamos claro
+    if (!data) {
+      throw new Error(
+        "Non se devolveu ningunha fila. Caso típico: RLS bloquea INSERT/UPDATE para este usuario."
+      );
+    }
 
     setText("#saveHint", "Gardado ✅");
     if (btn) btn.disabled = false;
 
-    // recargamos e reabrimos ficha co xogo actualizado
     await loadGames();
     renderChips();
     await render();
 
-    const newOne = g.__new
-      ? state.games.find((x) => x.title === payload.title) // aproximación para "novo"
-      : state.games.find((x) => String(x.id) === String(g.id));
-
-    openDetail(newOne || g);
+    openDetail(norm(data));
   } catch (e) {
     console.error(e);
     if (btn) btn.disabled = false;
-
     const msg = e?.message || String(e);
-
-    // Mensaxes máis útiles para RLS
-    if (/row-level security/i.test(msg) || /permission/i.test(msg) || /401|403/.test(msg)) {
-      alert("Erro ao gardar (RLS/permiso): revisa policies (UPDATE/INSERT) para admin.");
-      setText("#saveHint", "Erro (RLS/permiso).");
-      return;
-    }
-
     alert("Erro ao gardar: " + msg);
     setText("#saveHint", "Erro: " + msg);
   }
 }
 
-/** Crear novo xogo */
 function createNew() {
   if (!state.session) return showAuth("Para crear xogos, entra primeiro.");
   const tmp = {
@@ -559,7 +541,7 @@ function createNew() {
   openEditor(tmp);
 }
 
-/** Login */
+// ---------- Login ----------
 async function signIn() {
   try {
     setText("#authHint", "Entrando…");
@@ -576,7 +558,7 @@ async function signIn() {
   }
 }
 
-/** Bindea eventos */
+// ---------- Eventos UI ----------
 function bind() {
   on("#btnTheme", "click", toggleTheme);
 
@@ -593,6 +575,7 @@ function bind() {
   on("#btnCancelAuth", "click", hideAuth);
   on("#btnSignIn", "click", signIn);
 
+  // Pechar modal clicando no fondo
   const modal = $("#authModal");
   if (modal) {
     modal.addEventListener("click", (e) => {
@@ -607,6 +590,7 @@ function bind() {
     state.editMode = !state.editMode;
     await render();
   });
+
   on("#btnNew", "click", createNew);
 
   on("#q", "input", (e) => {
@@ -662,7 +646,7 @@ function bind() {
   );
 }
 
-/** Arranque */
+// ---------- Arranque ----------
 async function boot() {
   applyTheme();
   bind();
@@ -683,4 +667,5 @@ async function boot() {
 
   await render();
 }
+
 boot();
