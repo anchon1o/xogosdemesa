@@ -14,7 +14,7 @@
         <div class="brand__icon" aria-hidden="true">🎲</div>
         <div class="brand__text">
           <div class="brand__title">Ludoteca</div>
-          <div class="brand__subtitle">Colección</div>
+          <div class="brand__subtitle" id="brandSubtitle">Colección</div>
         </div>
       </div>
 
@@ -75,11 +75,12 @@
       </div>
     </main>
 
+    <!-- ✅ Bottom nav: Colección/Wishlist activos -->
     <nav class="bottomnav" aria-label="Navegación">
-      <button class="bottomnav__item bottomnav__item--active" type="button">
+      <button class="bottomnav__item bottomnav__item--active" id="navOwn" type="button">
         <span class="bottomnav__icon">🗂️</span><span class="bottomnav__label">Colección</span>
       </button>
-      <button class="bottomnav__item" type="button" disabled>
+      <button class="bottomnav__item" id="navWish" type="button">
         <span class="bottomnav__icon">⭐</span><span class="bottomnav__label">Wishlist</span>
       </button>
       <button class="bottomnav__item" type="button" disabled>
@@ -96,16 +97,12 @@
     <div class="detail__top">
       <button class="detail__back" id="detailBack">← Ludoteca</button>
       <div class="detail__title" id="detailTitle">Ficha</div>
-
-      <!-- ✅ O botón de editar só se amosa cando hai sesión (JS fai hidden=false) -->
       <button class="detail__kebab" id="detailEditBtn" title="Editar" hidden>✎</button>
     </div>
-
     <div class="detail__hero">
       <img id="detailCover" alt="Portada" />
       <div class="detail__heroFade"></div>
     </div>
-
     <div class="detail__content">
       <div class="tabs">
         <button class="tab tab--on" data-tab="resumo">Resumo</button>
@@ -113,18 +110,12 @@
         <button class="tab" data-tab="imaxes">Imaxes</button>
         <button class="tab" data-tab="links">Ligazóns</button>
       </div>
-
       <section class="panel" id="tab-resumo"></section>
       <section class="panel" id="tab-setup" hidden></section>
       <section class="panel" id="tab-imaxes" hidden></section>
       <section class="panel" id="tab-links" hidden></section>
 
-      <!-- =========================
-           ✅ EDITOR (modo edición)
-           Aquí estaba o problema:
-           tiñas display:none en Galería/Vídeo/Setup.
-           Quitámolo para que aparezan as casillas.
-           ========================= -->
+      <!-- ✅ Editor -->
       <section class="panel" id="editor" hidden>
         <div class="form">
           <div class="form__row">
@@ -134,47 +125,40 @@
 
           <div class="form__row">
             <div class="field"><label>BGG id</label><input id="f_bgg" type="number"></div>
+
+            <!-- ✅ NOVO: Colección -->
+            <div class="field">
+              <label>Colección</label>
+              <select id="f_collection">
+                <option value="own">own</option>
+                <option value="wishlist">wishlist</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form__row">
             <div class="field"><label>Players min</label><input id="f_pmin" type="number"></div>
             <div class="field"><label>Players max</label><input id="f_pmax" type="number"></div>
             <div class="field"><label>Minutos</label><input id="f_minutes" type="number"></div>
           </div>
 
           <div class="form__row">
-            <div class="field">
-              <label>Tags (comas)</label>
-              <input id="f_tags" placeholder="eurogame, cooperativo, cartas…">
-            </div>
+            <div class="field"><label>Tags (comas)</label><input id="f_tags"></div>
           </div>
 
           <div class="form__row">
-            <div class="field">
-              <label>Portada URL (opcional)</label>
-              <input id="f_cover" placeholder="https://.../cover.jpg">
-            </div>
+            <div class="field"><label>Portada URL (opcional)</label><input id="f_cover"></div>
           </div>
 
-          <!-- ✅ AGORA SI: Galería visible -->
+          <!-- ✅ Casillas visibles (sen display:none) -->
           <div class="form__row">
-            <div class="field">
-              <label>Galería URLs (1 por liña)</label>
-              <textarea id="f_gallery" placeholder="https://.../foto1.jpg&#10;https://.../foto2.jpg"></textarea>
-            </div>
+            <div class="field"><label>Galería URLs (1 por liña)</label><textarea id="f_gallery" placeholder="https://..."></textarea></div>
           </div>
-
-          <!-- ✅ AGORA SI: Vídeo visible -->
           <div class="form__row">
-            <div class="field">
-              <label>Vídeo</label>
-              <input id="f_video" placeholder="https://youtu.be/... ou https://...">
-            </div>
+            <div class="field"><label>Vídeo</label><input id="f_video" placeholder="https://youtu.be/..."></div>
           </div>
-
-          <!-- ✅ AGORA SI: Setup visible -->
           <div class="form__row">
-            <div class="field">
-              <label>Setup (1 por liña)</label>
-              <textarea id="f_setup" placeholder="Barallar mazos&#10;Repartir 5 cartas&#10;Colocar taboleiro…"></textarea>
-            </div>
+            <div class="field"><label>Setup (1 por liña)</label><textarea id="f_setup" placeholder="1) ..."></textarea></div>
           </div>
 
           <div class="form__row">
@@ -185,8 +169,6 @@
             <button class="btn" id="btnSave" type="button">Gardar</button>
             <button class="btn btn--ghost" id="btnCancel" type="button">Cancelar</button>
           </div>
-
-          <!-- ✅ Mensaxes do gardado -->
           <div class="hint" id="saveHint"></div>
         </div>
       </section>
