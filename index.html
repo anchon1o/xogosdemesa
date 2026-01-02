@@ -96,12 +96,16 @@
     <div class="detail__top">
       <button class="detail__back" id="detailBack">← Ludoteca</button>
       <div class="detail__title" id="detailTitle">Ficha</div>
+
+      <!-- ✅ O botón de editar só se amosa cando hai sesión (JS fai hidden=false) -->
       <button class="detail__kebab" id="detailEditBtn" title="Editar" hidden>✎</button>
     </div>
+
     <div class="detail__hero">
       <img id="detailCover" alt="Portada" />
       <div class="detail__heroFade"></div>
     </div>
+
     <div class="detail__content">
       <div class="tabs">
         <button class="tab tab--on" data-tab="resumo">Resumo</button>
@@ -109,45 +113,80 @@
         <button class="tab" data-tab="imaxes">Imaxes</button>
         <button class="tab" data-tab="links">Ligazóns</button>
       </div>
+
       <section class="panel" id="tab-resumo"></section>
       <section class="panel" id="tab-setup" hidden></section>
       <section class="panel" id="tab-imaxes" hidden></section>
       <section class="panel" id="tab-links" hidden></section>
 
+      <!-- =========================
+           ✅ EDITOR (modo edición)
+           Aquí estaba o problema:
+           tiñas display:none en Galería/Vídeo/Setup.
+           Quitámolo para que aparezan as casillas.
+           ========================= -->
       <section class="panel" id="editor" hidden>
         <div class="form">
           <div class="form__row">
             <div class="field"><label>Título</label><input id="f_title"></div>
             <div class="field"><label>Subtítulo</label><input id="f_subtitle"></div>
           </div>
+
           <div class="form__row">
             <div class="field"><label>BGG id</label><input id="f_bgg" type="number"></div>
             <div class="field"><label>Players min</label><input id="f_pmin" type="number"></div>
             <div class="field"><label>Players max</label><input id="f_pmax" type="number"></div>
             <div class="field"><label>Minutos</label><input id="f_minutes" type="number"></div>
           </div>
+
           <div class="form__row">
-            <div class="field"><label>Tags (comas)</label><input id="f_tags"></div>
+            <div class="field">
+              <label>Tags (comas)</label>
+              <input id="f_tags" placeholder="eurogame, cooperativo, cartas…">
+            </div>
           </div>
+
           <div class="form__row">
-            <div class="field"><label>Portada URL (opcional)</label><input id="f_cover"></div>
+            <div class="field">
+              <label>Portada URL (opcional)</label>
+              <input id="f_cover" placeholder="https://.../cover.jpg">
+            </div>
           </div>
+
+          <!-- ✅ AGORA SI: Galería visible -->
           <div class="form__row">
-            <div class="field"><label>Galería URLs (1 por liña)</label><textarea id="f_gallery" style="display:none"></textarea></div>
+            <div class="field">
+              <label>Galería URLs (1 por liña)</label>
+              <textarea id="f_gallery" placeholder="https://.../foto1.jpg&#10;https://.../foto2.jpg"></textarea>
+            </div>
           </div>
+
+          <!-- ✅ AGORA SI: Vídeo visible -->
           <div class="form__row">
-            <div class="field"><label>Vídeo</label><input id="f_video" style="display:none"></div>
+            <div class="field">
+              <label>Vídeo</label>
+              <input id="f_video" placeholder="https://youtu.be/... ou https://...">
+            </div>
           </div>
+
+          <!-- ✅ AGORA SI: Setup visible -->
           <div class="form__row">
-            <div class="field"><label>Setup (1 por liña)</label><textarea id="f_setup" style="display:none"></textarea></div>
+            <div class="field">
+              <label>Setup (1 por liña)</label>
+              <textarea id="f_setup" placeholder="Barallar mazos&#10;Repartir 5 cartas&#10;Colocar taboleiro…"></textarea>
+            </div>
           </div>
+
           <div class="form__row">
             <div class="field"><label>Notas</label><textarea id="f_notes"></textarea></div>
           </div>
+
           <div class="form__actions">
             <button class="btn" id="btnSave" type="button">Gardar</button>
             <button class="btn btn--ghost" id="btnCancel" type="button">Cancelar</button>
           </div>
+
+          <!-- ✅ Mensaxes do gardado -->
           <div class="hint" id="saveHint"></div>
         </div>
       </section>
