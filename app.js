@@ -1,4 +1,8 @@
-// Ludoteca (Supabase) — Colección/Wishlist + editor completo + gardado robusto
+// Ludoteca (Supabase) — Colección + Wishlist + Editor estable
+// - Usa a columna public.games.collection: 'own' | 'wishlist'
+// - O bottom nav cambia a vista e filtra
+// - Editor con casillas visibles
+// - Gardado sen .single() para evitar: "Cannot coerce the result to a single json object"
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -6,34 +10,30 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 const state = {
   games: [],
   theme: localStorage.getItem("ludo_theme") || "dark",
-  view: "own",              // ✅ "own" (Colección) | "wishlist"
+
+  // filtros
+  view: localStorage.getItem("ludo_view") || "own", // ✅ own | wishlist
   tag: null,
   q: "",
   players: "any",
   time: "any",
   sort: "name",
+
+  // auth + edición
   editMode: false,
   session: null,
   client: null,
   current: null,
 };
 
-// -------------------------
-// Helpers UI
-// -------------------------
 function setText(sel, text){
-  const el = $(sel);
-  if(el) el.textContent = text;
+  const el = $(sel); if(el) el.textContent = text;
 }
 function on(sel, evt, fn){
-  const el = $(sel);
-  if(el) el.addEventListener(evt, fn);
+  const el = $(sel); if(el) el.addEventListener(evt, fn);
 }
 function showMeta(text){ setText("#meta", text); }
 
-// -------------------------
-// Tema
-// -------------------------
 function applyTheme(){
   document.documentElement.setAttribute("data-theme", state.theme === "light" ? "light" : "dark");
   setText("#themeIcon", state.theme === "light" ? "☀️" : "🌙");
@@ -44,26 +44,18 @@ function toggleTheme(){
   applyTheme();
 }
 
-// -------------------------
-// Auth modal
-// -------------------------
 function showAuth(hint){
-  const m = $("#authModal");
-  if(!m) return;
+  const m = $("#authModal"); if(!m) return;
   m.hidden = false;
   setText("#authHint", hint || "");
   setTimeout(()=>{ $("#authEmail")?.focus(); }, 0);
 }
 function hideAuth(){
-  const m = $("#authModal");
-  if(!m) return;
+  const m = $("#authModal"); if(!m) return;
   m.hidden = true;
   setText("#authHint", "");
 }
 
-// -------------------------
-// Supabase init / sesión
-// -------------------------
 function initSupabase(){
   if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || String(window.SUPABASE_URL).includes("PASTE_")){
     showMeta("⚠️ Falta configurar Supabase en config.js");
@@ -90,15 +82,12 @@ async function refreshSession(){
   if(state.session) hideAuth();
 }
 
-// -------------------------
-// Normalización fila -> obxecto UI
-// -------------------------
+// Normaliza unha fila da BD ao formato que usa a UI
 function norm(r){
   return {
     id: r.id,
     title: r.title ?? "Sen título",
     subtitle: r.subtitle ?? "",
-    collection: r.collection ?? "own",    // ✅ novo
     bggId: r.bgg_id ?? null,
     players: [r.players_min ?? 1, r.players_max ?? 4],
     minutes: Number(r.minutes ?? 0),
@@ -109,13 +98,11 @@ function norm(r){
     gallery: Array.isArray(r.gallery_urls) ? r.gallery_urls : [],
     video: r.how_to_play_url ?? "",
     setup: Array.isArray(r.setup_quick) ? r.setup_quick : [],
-    notes: r.notes ?? ""
+    notes: r.notes ?? "",
+    collection: (r.collection === "wishlist") ? "wishlist" : "own", // ✅ default own
   };
 }
 
-// -------------------------
-// Cargar xogos
-// -------------------------
 async function loadGames(){
   showMeta("Cargando…");
   const { data, error } = await state.client
@@ -131,18 +118,16 @@ async function loadGames(){
   state.games = (data || []).map(norm);
 }
 
-// -------------------------
-// Tags / chips
-// (só dos xogos da vista actual)
-// -------------------------
+// ================== Tags / chips ==================
 function uniqueTags(){
   const set = new Set();
+  // tags só dos xogos da vista actual
   state.games
-    .filter(g => (g.collection || "own") === state.view)
+    .filter(g => g.collection === state.view)
     .forEach(g => (g.tags || []).forEach(t => set.add(t)));
+
   return [...set].sort((a,b)=>String(a).localeCompare(String(b),"gl"));
 }
-
 function renderChips(){
   const chips = $("#chips");
   if(!chips) return;
@@ -161,9 +146,7 @@ function renderChips(){
   uniqueTags().forEach(t => mk(t, t));
 }
 
-// -------------------------
-// Filtrado / ordenación
-// -------------------------
+// ================== Filtros ==================
 function bucket(mins){
   if(mins <= 30) return "short";
   if(mins <= 90) return "medium";
@@ -175,59 +158,56 @@ function matchPlayers(g, p){
   const n = Number(p);
   return n >= (g.players?.[0] ?? 1) && n <= (g.players?.[1] ?? 4);
 }
-
 function filtered(){
   const q = state.q.trim().toLowerCase();
 
   return state.games.filter(g => {
-    // ✅ 1) vista (Colección/Wishlist)
-    const okView = (g.collection || "own") === state.view;
+    // ✅ filtro principal por vista (colección/wishlist)
+    if(g.collection !== state.view) return false;
 
-    // ✅ 2) texto
     const okQ = !q
       || g.title.toLowerCase().includes(q)
       || (g.subtitle||"").toLowerCase().includes(q)
       || (g.tags||[]).join(" ").toLowerCase().includes(q);
 
-    // ✅ 3) tag chip
     const okT = !state.tag || (g.tags||[]).includes(state.tag);
-
-    // ✅ 4) xogadores / duración
     const okP = matchPlayers(g, state.players);
     const okM = state.time === "any" || bucket(g.minutes) === state.time;
-
-    return okView && okQ && okT && okP && okM;
+    return okQ && okT && okP && okM;
   });
 }
-
 function sorted(list){
   const a = [...list];
-  if(state.sort === "name")   a.sort((x,y)=>x.title.localeCompare(y.title,"gl"));
+  if(state.sort === "name") a.sort((x,y)=>x.title.localeCompare(y.title,"gl"));
   if(state.sort === "rating") a.sort((x,y)=>(y.rating||0)-(x.rating||0));
-  if(state.sort === "plays")  a.sort((x,y)=>(y.plays||0)-(x.plays||0));
+  if(state.sort === "plays") a.sort((x,y)=>(y.plays||0)-(x.plays||0));
   return a;
 }
 
-// -------------------------
-// Portadas (só URL ou placeholder)
-// -------------------------
+// ================== Imaxes ==================
 function placeholder(txt){
   return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%23141a33'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23eef2ff' font-family='system-ui' font-size='36'%3E"
-    + encodeURIComponent(txt) +
-    "%3C/text%3E%3C/svg%3E";
+    + encodeURIComponent(txt)
+    + "%3C/text%3E%3C/svg%3E";
+}
+function sanitizeUrl(u){
+  // BGG ás veces trae enlaces que rematan en $0 → iso rompe moitas veces
+  return String(u||"").trim().replace(/\$0$/, "");
 }
 async function loadCover(g){
-  if(g.cover) return g.cover;
+  if(g.cover) return sanitizeUrl(g.cover);
   return placeholder("sen portada");
 }
 function pill(icon, text){ return `<span class="pill">${icon} ${text}</span>`; }
 
-// -------------------------
-// Render grid
-// -------------------------
+// ================== Render principal ==================
 async function render(){
   const list = sorted(filtered());
   setText("#meta", `${list.length} resultado(s)`);
+
+  // actualizar subtítulo do header
+  const sub = $("#brandSubtitle");
+  if(sub) sub.textContent = (state.view === "wishlist") ? "Wishlist" : "Colección";
 
   const grid = $("#grid");
   const empty = $("#empty");
@@ -245,9 +225,10 @@ async function render(){
     const minutes = g.minutes ? `${g.minutes} min` : "—";
     const rating = g.rating ? Number(g.rating).toFixed(1) : "—";
     const plays = g.plays ?? 0;
+
     const tagPills =
-      (g.tags||[]).slice(0,2).map(t=>`<span class="pill">🏷️ ${t}</span>`).join("") +
-      ((g.tags||[]).length>2?`<span class="pill">+${(g.tags||[]).length-2}</span>`:"");
+      (g.tags||[]).slice(0,2).map(t=>`<span class="pill">🏷️ ${t}</span>`).join("")
+      + ((g.tags||[]).length>2 ? `<span class="pill">+${(g.tags||[]).length-2}</span>` : "");
 
     return `
       <article class="card ${state.editMode ? "card--edit":""}">
@@ -273,7 +254,6 @@ async function render(){
     `;
   }).join("");
 
-  // cargar imaxes
   for(const g of list){
     const img = document.querySelector(`img[data-cover="${CSS.escape(g.id)}"]`);
     if(!img) continue;
@@ -281,7 +261,6 @@ async function render(){
     img.src = await loadCover(g);
   }
 
-  // abrir ficha / editor
   grid.querySelectorAll("[data-open]").forEach(b=>{
     b.addEventListener("click", ()=>{
       const id = b.getAttribute("data-open");
@@ -293,22 +272,16 @@ async function render(){
   });
 }
 
-// -------------------------
-// Tabs detail
-// -------------------------
+// ================== Detalle / Tabs ==================
 function setTab(tab){
   $$(".tab").forEach(t=>t.classList.toggle("tab--on", t.getAttribute("data-tab")===tab));
   ["resumo","setup","imaxes","links"].forEach(k=>{
     const p=$("#tab-"+k);
     if(p) p.hidden = (k!==tab);
   });
-  const ed = $("#editor");
-  if(ed) ed.hidden = true;
+  const ed = $("#editor"); if(ed) ed.hidden = true;
 }
 
-// -------------------------
-// Detail
-// -------------------------
 function openDetail(g){
   state.current = g;
   const d = $("#detail"); if(!d) return;
@@ -332,10 +305,12 @@ function openDetail(g){
     resumo.innerHTML = `
       <div style="font-weight:900;font-size:16px">${g.title}</div>
       ${g.subtitle?`<div style="margin-top:6px;color:var(--muted)">${g.subtitle}</div>`:""}
-      <div class="kv">${pill("👥",players)} ${pill("⏱️",minutes)} ${pill("★",rating)} ${pill("▶",plays)}</div>
+      <div class="kv">
+        ${pill("👥",players)} ${pill("⏱️",minutes)} ${pill("★",rating)} ${pill("▶",plays)}
+        ${pill("🗂️", g.collection === "wishlist" ? "Wishlist" : "Colección")}
+      </div>
       ${(g.tags||[]).length?`<div class="kv">${(g.tags||[]).map(t=>`<span class="pill">🏷️ ${t}</span>`).join("")}</div>`:""}
       ${g.notes?`<div style="margin-top:12px;color:var(--muted)">${g.notes}</div>`:""}
-      <div style="margin-top:12px;color:var(--muted);font-size:12px">collection: <b>${g.collection || "own"}</b></div>
     `;
   }
 
@@ -349,7 +324,7 @@ function openDetail(g){
   const imgs = $("#tab-imaxes");
   if(imgs){
     imgs.innerHTML = g.gallery?.length
-      ? `<div class="galleryRow">${g.gallery.map(u=>`<img src="${u}" loading="lazy">`).join("")}</div>
+      ? `<div class="galleryRow">${g.gallery.map(u=>`<img src="${sanitizeUrl(u)}" loading="lazy">`).join("")}</div>
          <div style="margin-top:10px;color:var(--muted)">Imaxes externas (URLs).</div>`
       : `<div style="color:var(--muted)">Sen imaxes extra.</div>`;
   }
@@ -358,7 +333,7 @@ function openDetail(g){
   if(links){
     links.innerHTML = `
       ${g.video
-        ? `<a class="linkBtn" href="${g.video}" target="_blank" rel="noopener">▶ Vídeo: como xogar</a>`
+        ? `<a class="linkBtn" href="${sanitizeUrl(g.video)}" target="_blank" rel="noopener">▶ Vídeo: como xogar</a>`
         : `<div style="color:var(--muted)">Sen vídeo aínda.</div>`
       }
       ${g.bggId
@@ -371,33 +346,26 @@ function openDetail(g){
   setTab("resumo");
   document.body.style.overflow = "hidden";
 }
-
 function closeDetail(){
-  const d = $("#detail");
-  if(d) d.hidden = true;
+  const d = $("#detail"); if(d) d.hidden = true;
   document.body.style.overflow = "";
 }
 
-// -------------------------
-// Editor
-// -------------------------
+// ================== Editor ==================
 function openEditor(g){
   if(!state.session) return showAuth("Para editar, entra primeiro.");
   openDetail(g);
 
-  const ed = $("#editor");
-  if(!ed) return;
-
+  const ed = $("#editor"); if(!ed) return;
   ed.hidden = false;
-  ["resumo","setup","imaxes","links"].forEach(k=>{
-    const p=$("#tab-"+k);
-    if(p) p.hidden = true;
-  });
+
+  // agochamos paneis cando editamos
+  ["resumo","setup","imaxes","links"].forEach(k=>{ const p=$("#tab-"+k); if(p) p.hidden = true; });
   $$(".tab").forEach(t=>t.classList.remove("tab--on"));
 
+  // enchido de campos
   $("#f_title").value = g.title||"";
   $("#f_subtitle").value = g.subtitle||"";
-  $("#f_collection").value = (g.collection || "own");
   $("#f_bgg").value = g.bggId ?? "";
   $("#f_pmin").value = g.players?.[0] ?? 1;
   $("#f_pmax").value = g.players?.[1] ?? 4;
@@ -408,6 +376,8 @@ function openEditor(g){
   $("#f_video").value = g.video || "";
   $("#f_setup").value = (g.setup||[]).join("\n");
   $("#f_notes").value = g.notes || "";
+  $("#f_collection").value = (g.collection === "wishlist") ? "wishlist" : "own";
+
   setText("#saveHint","");
 }
 
@@ -422,51 +392,37 @@ async function doSave(){
   setText("#saveHint","Gardando…");
   const btn = $("#btnSave"); if(btn) btn.disabled = true;
 
-  // Payload coas columnas que existen na túa táboa (agora incluímos collection + campos extra)
   const payload = {
     title: $("#f_title").value.trim(),
     subtitle: $("#f_subtitle").value.trim(),
-    collection: $("#f_collection").value || "own",
     bgg_id: toInt($("#f_bgg").value),
     players_min: toInt($("#f_pmin").value) ?? 1,
     players_max: toInt($("#f_pmax").value) ?? 4,
     minutes: toInt($("#f_minutes").value) ?? 0,
     tags: parseTags($("#f_tags").value),
-    cover_url: $("#f_cover").value.trim() || null,
-    gallery_urls: parseLines($("#f_gallery").value),         // ✅
-    how_to_play_url: $("#f_video").value.trim() || null,      // ✅
-    setup_quick: parseLines($("#f_setup").value),             // ✅
+    cover_url: sanitizeUrl($("#f_cover").value.trim()) || null,
+    gallery_urls: parseLines($("#f_gallery").value).map(sanitizeUrl),
+    how_to_play_url: sanitizeUrl($("#f_video").value.trim()) || null,
+    setup_quick: parseLines($("#f_setup").value),
     notes: $("#f_notes").value.trim() || null,
+    collection: ($("#f_collection").value === "wishlist") ? "wishlist" : "own",
   };
 
-  // ✅ IMPORTANTE:
-  // Evitamos `.single()` porque pode fallar se Supabase devolve 0 ou >1 filas por RLS/returning.
-  // Facemos `.select()` e logo comprobamos nós.
   const TIMEOUT_MS = 12000;
 
-  const op = (async ()=>{
-    let res;
-    if(g && g.__new){
-      res = await state.client.from("games").insert(payload).select("*");
-    }else{
-      res = await state.client.from("games").update(payload).eq("id", g.id).select("*");
-    }
-    if(res.error) throw res.error;
-
-    const rows = res.data || [];
-    if(rows.length !== 1){
-      // Mensaxe máis clara para RLS / returning raro
-      throw new Error(
-        rows.length === 0
-          ? "Non se devolveu ningunha fila. Case típico: RLS bloquea INSERT/UPDATE para este usuario."
-          : "Devolvéronse varias filas ao gardar (inesperado). Revisa .eq('id',...) e claves."
-      );
-    }
-    return rows[0];
-  })();
-
   try{
-    const data = await Promise.race([
+    const op = (async ()=>{
+      let res;
+      if(g && g.__new){
+        res = await state.client.from("games").insert(payload);
+      }else{
+        res = await state.client.from("games").update(payload).eq("id", g.id);
+      }
+      if(res.error) throw res.error;
+      return res;
+    })();
+
+    await Promise.race([
       op,
       new Promise((_, rej)=>setTimeout(()=>rej(new Error("TIMEOUT")), TIMEOUT_MS))
     ]);
@@ -477,33 +433,34 @@ async function doSave(){
     renderChips();
     await render();
 
-    // abrir ficha co rexistro devolto
-    openDetail(norm(data));
-    if(btn) btn.disabled = false;
+    // reabrimos detalle do xogo actualizado dende state.games
+    const updated = g.__new
+      ? state.games.find(x => x.title === payload.title && x.bggId === payload.bgg_id) // fallback
+      : state.games.find(x => String(x.id) === String(g.id));
+    if(updated) openDetail(updated);
 
   }catch(e){
     console.error(e);
-    if(btn) btn.disabled = false;
+    const msg = e?.message || String(e);
 
-    const msg = (e && e.message) ? e.message : String(e);
     if(msg === "TIMEOUT"){
-      alert("⚠️ Quedou en Gardando…: seguramente políticas RLS/permiso en Supabase ou conexión.");
-      setText("#saveHint","⚠️ Tardou demasiado. Revisa conexión e políticas RLS en Supabase.");
+      alert("⚠️ Quedou en Gardando… Revisa conexión ou RLS en Supabase.");
+      setText("#saveHint","⚠️ Tardou demasiado. Revisa conexión/RLS.");
     }else{
       alert("Erro ao gardar: " + msg);
       setText("#saveHint","Erro: " + msg);
     }
+  }finally{
+    const btn2 = $("#btnSave"); if(btn2) btn2.disabled = false;
   }
 }
 
 function createNew(){
   if(!state.session) return showAuth("Para crear xogos, entra primeiro.");
-
   const tmp = {
     id:"new",
     title:"Novo xogo",
     subtitle:"",
-    collection: state.view, // ✅ por defecto: o que estás vendo
     bggId:null,
     players:[1,4],
     minutes:0,
@@ -515,14 +472,12 @@ function createNew(){
     video:"",
     setup:[],
     notes:"",
+    collection: state.view, // ✅ crea no tab actual
     __new:true
   };
   openEditor(tmp);
 }
 
-// -------------------------
-// Sign in
-// -------------------------
 async function signIn(){
   try{
     setText("#authHint","Entrando…");
@@ -536,34 +491,25 @@ async function signIn(){
   }
 }
 
-// -------------------------
-// Vista Colección/Wishlist (bottom nav)
-// -------------------------
-function setView(view){
-  state.view = (view === "wishlist") ? "wishlist" : "own";
+// ================== Vista Colección/Wishlist ==================
+function setView(v){
+  state.view = (v === "wishlist") ? "wishlist" : "own";
+  localStorage.setItem("ludo_view", state.view);
 
-  // UI bottom nav
-  const b1 = $("#navCollection");
-  const b2 = $("#navWishlist");
-  if(b1) b1.classList.toggle("bottomnav__item--active", state.view === "own");
-  if(b2) b2.classList.toggle("bottomnav__item--active", state.view === "wishlist");
+  // UI do bottom nav
+  $("#navCollection")?.classList.toggle("bottomnav__item--active", state.view === "own");
+  $("#navWishlist")?.classList.toggle("bottomnav__item--active", state.view === "wishlist");
 
-  // Título
-  setText("#brandSubtitle", state.view === "own" ? "Colección" : "Wishlist");
-
-  // Reset de chips porque cambian os tags dispoñibles
+  // reset suave
   state.tag = null;
   renderChips();
   render();
 }
 
-// -------------------------
-// Bind eventos
-// -------------------------
+// ================== Bind de eventos ==================
 function bind(){
   on("#btnTheme","click",toggleTheme);
 
-  // Login/logout
   on("#btnAuth","click", async ()=>{
     if(!state.client){
       showMeta("⚠️ Supabase non está configurado (revisa config.js)");
@@ -586,14 +532,12 @@ function bind(){
     if(e.key === "Escape") hideAuth();
   });
 
-  // Modo edición / crear
   on("#btnEditMode","click", async ()=>{
     state.editMode = !state.editMode;
     await render();
   });
   on("#btnNew","click", createNew);
 
-  // Search
   on("#q","input",(e)=>{
     state.q = e.target.value || "";
     const c = $("#btnClear");
@@ -607,7 +551,6 @@ function bind(){
     render();
   });
 
-  // Selects
   on("#players","change",(e)=>{ state.players = e.target.value; render(); });
   on("#time","change",(e)=>{ state.time = e.target.value; render(); });
   on("#sort","change",(e)=>{ state.sort = e.target.value; render(); });
@@ -619,45 +562,37 @@ function bind(){
     renderChips(); render();
   });
 
-  // Detail
   on("#detailBack","click", closeDetail);
   on("#detailEditBtn","click", ()=> openEditor(state.current));
   on("#btnSave","click", doSave);
   on("#btnCancel","click", ()=> openDetail(state.current));
 
-  // Tabs
   $$(".tab").forEach(t=> t.addEventListener("click", ()=> setTab(t.getAttribute("data-tab")) ));
 
-  // Bottom nav Colección/Wishlist
+  // ✅ bottom nav
   on("#navCollection","click", ()=> setView("own"));
   on("#navWishlist","click", ()=> setView("wishlist"));
 }
 
-// -------------------------
-// Boot
-// -------------------------
+// ================== Boot ==================
 async function boot(){
   applyTheme();
   bind();
 
-  // Vista inicial: own
-  setView("own");
-
-  if(!initSupabase()){
-    return;
-  }
+  if(!initSupabase()) return;
 
   await refreshSession();
-
   state.client.auth.onAuthStateChange(async ()=>{
     await refreshSession();
     await render();
   });
 
   await loadGames();
-  renderChips();
-  const c = $("#btnClear"); if(c) c.style.visibility="hidden";
-  await render();
-}
 
+  // estado do botón clear
+  const c = $("#btnClear"); if(c) c.style.visibility="hidden";
+
+  // activa o tab inicial
+  setView(state.view);
+}
 boot();
