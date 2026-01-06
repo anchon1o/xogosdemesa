@@ -33,6 +33,217 @@ const state = {
   current: null,
 };
 
+
+// ✅ Listas definitivas (GL) — primeiro carácter en maiúscula, resto tal e como ti o tes
+const CATEGORIES = [
+  "Estratexia",
+  "Abstracto",
+  "Acción",
+  "Destreza",
+  "Aventura",
+  "Guerra",
+  "Oeste",
+  "Antigüidade",
+  "Animais",
+  "Voo",
+  "Engano",
+  "Farol",
+  "Libro",
+  "Cartas",
+  "Infantil",
+  "Construción de cidades",
+  "Civilización",
+  "Banda deseñada",
+  "Dedución",
+  "Dados",
+  "Economía",
+  "Educativo",
+  "Electrónico",
+  "Medio ambiente",
+  "Exploración",
+  "Fantasía",
+  "Agricultura",
+  "Loita",
+  "Terror",
+  "Humor",
+  "Industria",
+  "Mafia",
+  "Matemáticas",
+  "Adultos",
+  "Labirinto",
+  "Medicina",
+  "Medieval",
+  "Memoria",
+  "Miniaturas",
+  "TV / Radio",
+  "Misterio",
+  "Música",
+  "Mitoloxía",
+  "Náutico",
+  "Negociación",
+  "Números",
+  "Party",
+  "Piratas",
+  "Política",
+  "Prehistoria",
+  "Imprimir e xogar",
+  "Quebracabezas",
+  "Carreiras",
+  "Tempo real",
+  "Relixioso",
+  "Renacemento",
+  "Ciencia ficción",
+  "Exploración espacial",
+  "Espías / Axentes secretos",
+  "Deportes",
+  "Construción de territorios",
+  "Trens",
+  "Transporte",
+  "Viaxes",
+  "Trivial / Preguntas",
+  "Videoxogo",
+  "Palabras",
+  "Zombis",
+];
+
+const MECHANICS = [
+  "Interpretación",
+  "Accións e eventos",
+  "Draft de accións",
+  "Puntos de acción",
+  "Cola de accións",
+  "Alianzas",
+  "Maioría / Influencia de área",
+  "Movemento por áreas",
+  "Subasta / Poxas",
+  "Apostas e faroleo",
+  "Bingo",
+  "Suborno",
+  "Campaña",
+  "Atrapa ao líder",
+  "Encadeamento",
+  "Draft pechado",
+  "Limitación da comunicación",
+  "Contratos",
+  "Cooperativo",
+  "Golpes críticos e fallos",
+  "Torre de dados",
+  "Construción de baralla",
+  "Dedución",
+  "Roubo",
+  "Finalización por tempo real transcorrido",
+  "Peche / Cercado",
+  "Bonificacións de final de partida",
+  "Eventos",
+  "Final apoteósico",
+  "Flicking",
+  "Seguir",
+  "Cobertura de grella",
+  "Movemento en grella",
+  "Xestión de man",
+  "Grella hexagonal",
+  "Movemento oculto",
+  "Roles ocultos",
+  "Puntos de vitoria ocultos",
+  "Puntuación maior-menor",
+  "Pataca quente",
+  "Ingresos",
+  "Indución",
+  "Interrupcións",
+  "Investimento",
+  "Roubo de eliminación",
+  "Rei do outeiro",
+  "Escalada de posicións",
+  "Superposición de capas",
+  "Legacy",
+  "Debuxo de liñas",
+  "Liña de visión",
+  "Préstamos",
+  "Redución do mapa",
+  "Mercado",
+  "Emparellamento",
+  "Movemento por medición",
+  "Memoria",
+  "Taboleiro modular",
+  "Movemento a través da baralla",
+  "Narrativo",
+  "Negociación",
+  "Construción de redes e rutas",
+  "Habilidades únicas",
+  "Draft aberto",
+  "Contadores de orde",
+  "Ordenación",
+  "Propiedades",
+  "Papel e lapis",
+  "Construción de patróns",
+  "Movemento por patróns",
+  "Recoñecemento de patróns",
+  "Eliminación física",
+  "Recoller e entregar",
+  "Pezas como mapa",
+  "Eliminación de xogadores",
+  "Xogador xuíz",
+  "Movemento punto a punto",
+  "Poxa predictiva",
+  "Dilema do prisioneiro",
+  "Movemento programado",
+  "Forzar a sorte",
+  "Preguntas e respostas",
+  "Carreira",
+  "Produción aleatoria",
+  "Táboa de resultados de combate",
+  "Repetición e bloqueo de tiradas",
+  "Tempo real",
+  "Movemento relativo",
+  "Cola de recursos",
+  "Recursos para mover",
+  "Pedra-papel-tesoira",
+  "Interpretación de roles",
+  "Roles con información asimétrica",
+  "Tirar / xirar e mover",
+  "Rondel",
+  "Escenario / Misión / Campaña",
+  "Xogo de puntuación e reinicio",
+  "Despregamento secreto de unidades",
+  "Xogo semi-cooperativo",
+  "Colección de conxuntos",
+  "Simulación",
+  "Selección simultánea de accións",
+  "Cantar",
+  "Xogo dun único perdedor",
+  "Deslizar / Empurrar",
+  "Xogo en solitario",
+  "Emparellamento rápido",
+  "Ortografía",
+  "Grella cadrada",
+  "Apilar e equilibrar",
+  "Resolución por comprobación de estatísticas",
+  "Captura estática",
+  "Mantemento de accións",
+  "Participacións en bolsa",
+  "Narración de historias",
+  "Final por morte súbita",
+  "Etiquetas",
+  "Ataque directo",
+  "Pistas dirixidas",
+  "Xogo por equipos",
+  "Árbores de tecnoloxías",
+  "Movemento tridimensional",
+  "Colocación de losetas",
+  "Movemento por pista",
+  "Comercio",
+  "Xogo de traidor",
+  "Bazas",
+  "Tira e afrouxa",
+  "Orde de fases variable",
+  "Poderes variables dos xogadores",
+  "Preparación variable",
+  "Puntos de vitoria como recurso",
+  "Votación",
+  "Colocación de traballadores",
+  "Zona de control",
+];
+
 /* -----------------------------
    UI helpers
 ----------------------------- */
@@ -124,7 +335,8 @@ function norm(r){
     minutes: Number(r.minutes ?? 0),
     rating: Number(r.rating ?? 0),
     plays: Number(r.plays ?? 0),
-
+categories: Array.isArray(r.categories) ? r.categories : [],
+mechanics:  Array.isArray(r.mechanics)  ? r.mechanics  : [],
     tags: Array.isArray(r.tags) ? r.tags : [],
     cover: r.cover_url ?? "",
     gallery: Array.isArray(r.gallery_urls) ? r.gallery_urls : [],
@@ -352,27 +564,64 @@ function openDetail(g){
   const rating  = g.rating ? Number(g.rating).toFixed(1) : "—";
   const plays   = g.plays ?? 0;
 
+  // ✅ por seguridade: evita que texto con "<" etc. rompa o HTML
+  const esc = (s) => String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
   const resumo = $("#tab-resumo");
   if(resumo){
+    const tags = (g.tags || []);
+    const cats = (g.categories || []);   // ✅ categorías (GL)
+    const mechs = (g.mechanics || []);   // ✅ mecánicas (GL)
+
     resumo.innerHTML = `
-      <div style="font-weight:900;font-size:16px">${g.title}</div>
-      ${g.subtitle ? `<div style="margin-top:6px;color:var(--muted)">${g.subtitle}</div>` : ""}
-      <div class="kv">${pill("👥",players)} ${pill("⏱️",minutes)} ${pill("★",rating)} ${pill("▶",plays)}</div>
-      ${(g.tags||[]).length ? `<div class="kv">${(g.tags||[]).map(t=>`<span class="pill">🏷️ ${t}</span>`).join("")}</div>` : ""}
-      <div class="kv" style="margin-top:10px">${pill("📦", g.collection === "wishlist" ? "Wishlist" : "Colección")}</div>
-      ${g.notes ? `<div style="margin-top:12px;color:var(--muted)">${g.notes}</div>` : ""}
+      <div style="font-weight:900;font-size:16px">${esc(g.title)}</div>
+      ${g.subtitle ? `<div style="margin-top:6px;color:var(--muted)">${esc(g.subtitle)}</div>` : ""}
+
+      <div class="kv">
+        ${pill("👥", players)}
+        ${pill("⏱️", minutes)}
+        ${pill("★", rating)}
+        ${pill("▶", plays)}
+      </div>
+
+      ${tags.length
+        ? `<div class="kv">${tags.map(t => `<span class="pill">🏷️ ${esc(t)}</span>`).join("")}</div>`
+        : ""
+      }
+
+      <!-- ✅ PASO 6: Categorías e Mecánicas (píldoras separadas) -->
+      ${cats.length
+        ? `<div class="kv">${cats.map(c => `<span class="pill">📘 ${esc(c)}</span>`).join("")}</div>`
+        : ""
+      }
+      ${mechs.length
+        ? `<div class="kv">${mechs.map(m => `<span class="pill">⚙️ ${esc(m)}</span>`).join("")}</div>`
+        : ""
+      }
+
+      <div class="kv" style="margin-top:10px">
+        ${pill("📦", g.collection === "wishlist" ? "Wishlist" : "Colección")}
+      </div>
+
+      ${g.notes ? `<div style="margin-top:12px;color:var(--muted)">${esc(g.notes)}</div>` : ""}
     `;
   }
 
   const setup = $("#tab-setup");
   if(setup){
     setup.innerHTML = g.setup?.length
-      ? `<ol class="list">${g.setup.map(s=>`<li>${s}</li>`).join("")}</ol>`
+      ? `<ol class="list">${g.setup.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`
       : `<div style="color:var(--muted)">Sen setup aínda.</div>`;
   }
 
   const imgs = $("#tab-imaxes");
   if(imgs){
+    // aquí non escapamos URLs porque son atributos src; asumimos que ti metes URLs válidas
     imgs.innerHTML = g.gallery?.length
       ? `<div class="galleryRow">${g.gallery.map(u=>`<img src="${u}" loading="lazy">`).join("")}</div>
          <div style="margin-top:10px;color:var(--muted)">Imaxes externas (URLs).</div>`
@@ -393,10 +642,86 @@ function openDetail(g){
   setTab("resumo");
   document.body.style.overflow = "hidden";
 }
+
 function closeDetail(){
   const d = $("#detail");
   if(d) d.hidden = true;
   document.body.style.overflow = "";
+}
+
+// estado local do editor (non se garda ata premer Gardar)
+const editorPick = {
+  categories: [],
+  mechanics: [],
+};
+
+function uniqSorted(arr){
+  return [...new Set((arr||[]).map(x=>String(x).trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,"gl"));
+}
+
+function renderPick(kind){
+  // kind: "cat" | "mech"
+  const listEl  = kind==="cat" ? $("#catList")  : $("#mechList");
+  const chipsEl = kind==="cat" ? $("#catChips") : $("#mechChips");
+  const search  = kind==="cat" ? ($("#catSearch")?.value||"") : ($("#mechSearch")?.value||"");
+  const all     = kind==="cat" ? CATEGORIES : MECHANICS;
+  const selected = kind==="cat" ? editorPick.categories : editorPick.mechanics;
+
+  if(!listEl || !chipsEl) return;
+
+  // chips
+  chipsEl.innerHTML = selected.length
+    ? selected.map(x=>`<span class="chip">${x}<button type="button" data-x="${escapeHtml(x)}" aria-label="Quitar">✕</button></span>`).join("")
+    : `<div style="color:var(--muted);font-size:13px">Nada seleccionado.</div>`;
+
+  chipsEl.querySelectorAll("button[data-x]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const val = btn.getAttribute("data-x");
+      if(kind==="cat") editorPick.categories = editorPick.categories.filter(x=>x!==val);
+      else editorPick.mechanics = editorPick.mechanics.filter(x=>x!==val);
+      renderPick(kind);
+    });
+  });
+
+  // lista filtrada
+  const q = search.trim().toLowerCase();
+  const view = all.filter(x => !q || x.toLowerCase().includes(q));
+
+  listEl.innerHTML = view.map(x=>{
+    const checked = selected.includes(x);
+    const badge = kind==="cat"
+      ? `<span class="badge badge--cat">CAT</span>`
+      : `<span class="badge badge--mech">MEC</span>`;
+    return `
+      <label class="pickrow">
+        <input type="checkbox" ${checked ? "checked":""} data-pick="${escapeHtml(x)}">
+        ${badge}
+        <span>${escapeHtml(x)}</span>
+      </label>
+    `;
+  }).join("");
+
+  listEl.querySelectorAll("input[data-pick]").forEach(inp=>{
+    inp.addEventListener("change", ()=>{
+      const val = inp.getAttribute("data-pick");
+      let arr = kind==="cat" ? editorPick.categories : editorPick.mechanics;
+      if(inp.checked) arr = uniqSorted([...arr, val]);
+      else arr = arr.filter(x=>x!==val);
+      if(kind==="cat") editorPick.categories = arr;
+      else editorPick.mechanics = arr;
+      renderPick(kind);
+    });
+  });
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
 /* -----------------------------
@@ -431,6 +756,15 @@ function openEditor(g){
   $("#f_setup").value    = (g.setup||[]).join("\n");
   $("#f_notes").value    = g.notes || "";
   $("#f_collection").value = (g.collection || "own");
+  
+  editorPick.categories = uniqSorted(g.categories || []);
+editorPick.mechanics  = uniqSorted(g.mechanics  || []);
+
+$("#catSearch") && ($("#catSearch").value = "");
+$("#mechSearch") && ($("#mechSearch").value = "");
+
+renderPick("cat");
+renderPick("mech");
 
   setText("#saveHint","");
 }
@@ -465,7 +799,8 @@ async function doSave(){
     players_min: toInt($("#f_pmin").value) ?? 1,
     players_max: toInt($("#f_pmax").value) ?? 4,
     minutes: toInt($("#f_minutes").value) ?? 0,
-
+categories: editorPick.categories,
+mechanics: editorPick.mechanics,
     tags: parseTags($("#f_tags").value),
 
     cover_url: $("#f_cover").value.trim() || null,
@@ -586,6 +921,9 @@ function bind(){
 
   on("#btnCloseAuth","click", hideAuth);
   on("#btnSignIn","click", signIn);
+  
+  on("#catSearch","input", ()=> renderPick("cat"));
+on("#mechSearch","input", ()=> renderPick("mech"));
 
   // pechar modal clicando fóra
   const modal = $("#authModal");
