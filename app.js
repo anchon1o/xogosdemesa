@@ -483,27 +483,28 @@ async function render(){
       + ((g.tags||[]).length>2 ? `<span class="pill">+${(g.tags||[]).length-2}</span>` : "");
 
     return `
-      <article class="card ${state.editMode ? "card--edit":""}">
-        <div class="cover" role="button" tabindex="0" data-open="${g.id}" aria-label="Abrir ficha de ${g.title}">
-          <img class="cover__img" data-cover="${g.id}" alt="Portada de ${g.title}">
-          <div class="cover__badge">★ ${rating} · ▶ ${plays}</div>
-        </div>
+  <article class="card ${state.editMode ? "card--edit":""}">
+    <button class="cover cover--btn" type="button" data-open="${g.id}" aria-label="Abrir ${g.title}">
+      <img class="cover__img" data-cover="${g.id}" alt="Portada de ${g.title}">
+      <div class="cover__badge">★ ${rating} · ▶ ${plays}</div>
+    </button>
 
-        <div class="card__body">
-          <div>
-            <div class="card__title" role="button" tabindex="0" data-open="${g.id}">${g.title}</div>
-            <div class="card__sub">${g.subtitle||""}</div>
-          </div>
-          <div class="meta">${pill("👥",players)} ${pill("⏱️",minutes)}</div>
-          <div class="meta">${tagPills}</div>
-        </div>
+    <div class="card__body">
+      <button class="card__titlebtn" type="button" data-open="${g.id}">
+        <div class="card__title">${g.title}</div>
+      </button>
 
-        <!-- footer queda, pero sen botóns -->
-        <div class="card__footer" style="justify-content:flex-end">
-          <button class="kebab" type="button" disabled>⋯</button>
-        </div>
-      </article>
-    `;
+      ${g.subtitle ? `<div class="card__sub">${g.subtitle}</div>` : ""}
+
+      <div class="meta meta--compact">
+        ${pill("👥",players)}
+        ${pill("⏱️",minutes)}
+      </div>
+
+      <!-- opcional: aquí podes meter 1-2 pills de categorías/mecánicas máis adiante -->
+    </div>
+  </article>
+`;
   }).join("");
 
   // cargar portadas (móbil-friendly: en serie)
@@ -515,17 +516,27 @@ async function render(){
   }
 
   // abrir ficha tocando portada ou nome
-  grid.querySelectorAll("[data-open]").forEach(el=>{
-    const open = ()=>{
-      const id = el.getAttribute("data-open");
-      const g = state.games.find(x=>String(x.id)===String(id));
-      if(!g) return;
-      openDetail(g);
-    };
-    el.addEventListener("click", open);
-    el.addEventListener("keydown", (e)=>{ if(e.key==="Enter" || e.key===" ") open(); });
+grid.querySelectorAll("[data-open]").forEach(el=>{
+  const open = ()=>{
+    const id = el.getAttribute("data-open");
+    const g = state.games.find(x=>String(x.id)===String(id));
+    if(!g) return;
+
+    // ✅ se estás en modo edición e logueado -> editor
+    if(state.editMode && state.session) openEditor(g);
+    else openDetail(g);
+  };
+
+  el.addEventListener("click", open);
+
+  // ✅ accesibilidade: Enter/Espazo
+  el.addEventListener("keydown", (e)=>{
+    if(e.key==="Enter" || e.key===" "){
+      e.preventDefault();
+      open();
+    }
   });
-}
+});
 
 /* -----------------------------
    Tabs da ficha
